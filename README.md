@@ -6,7 +6,7 @@
 
 A robust and scalable Django REST API for managing **event spaces**, handling **booking workflows**, and enabling **admin approvals** with real-time availability tracking.
 
-Developed by a team of attachés 💼 to enhance efficiency, transparency, and control in venue reservations.
+Developed by a team of attachees 💼 to enhance efficiency, transparency, and control in venue reservations.
 
 ---
 
@@ -26,11 +26,11 @@ Developed by a team of attachés 💼 to enhance efficiency, transparency, and c
 ## 🏗️ Tech Stack
 
 | Layer        | Technology       |
-|-------------|------------------|
+|--------------|------------------|
 | Backend      | Django, Django REST Framework |
 | Database     | PostgreSQL       |
 | Auth         | JWT (SimpleJWT)  |
-| Dev Tools    | Docker, Railway  |
+| Dev Tools    | Railway  |
 | Calendar     | FullCalendar.js *(Frontend)* |
 | Frontend     | React (Separate Repo)        |
 
@@ -39,7 +39,7 @@ Developed by a team of attachés 💼 to enhance efficiency, transparency, and c
 ## 📁 Project Structure
 
 ```bash
-event-space-backend/
+eventspace-api/
 ├── apps/
 │   ├── authentication/
 │   ├── bookings/
