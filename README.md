@@ -8,8 +8,6 @@ A robust and scalable Django REST API for managing **event spaces**, handling **
 
 Developed by a team of attachees 💼 to enhance efficiency, transparency, and control in venue reservations.
 
----
-
 ## 🚀 Features
 
 - 🔐 JWT Authentication (Login, Register, Profile)
