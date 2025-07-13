@@ -3,3 +3,4 @@ Django==5.2.4
 sqlparse==0.5.3
 djangorestframework
 djangorestframework-simplejwt
+drf-yasg==1.21.8
