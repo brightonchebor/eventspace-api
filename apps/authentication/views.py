@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .serializers import UserRegisterSerializer
+from .serializers import UserRegisterSerializer ,LoginSerializer
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -27,7 +27,23 @@ class UserRegisterView(GenericAPIView):
               }, status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class LoginUserView( GenericAPIView):
+    serializer_class = LoginSerializer
 
+    @swagger_auto_schema(operation_summary='Login user to get generate JWT token.')
+    def post(self, request):
+        serializer = self.serializer_class(
+            data=request.data,
+            context={
+                'request':request
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
 class VerifyUserEmail(GenericAPIView):
 
     @swagger_auto_schema(operation_summary='Confirming password reset.',request_body=openapi.Schema(
