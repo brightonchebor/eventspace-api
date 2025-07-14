@@ -2,6 +2,5 @@ db.sqlite3
 .env
 apps/authentication/migrations
 apps\authentication\migrations
-__pycache__/
-*.py[cod]
-*$py.class
+**/__pycache__/
+**/*.py[cod]
