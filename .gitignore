@@ -9,3 +9,7 @@ apps\authentication\migrations
 
 **/migrations/*
 !**/migrations/__init__.py
+
+# In .gitignore
+__pycache__/
+*.pyc
