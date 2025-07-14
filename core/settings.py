@@ -1,7 +1,17 @@
 from pathlib import Path
+import os
+import environ
 
+env = environ.Env(
+    # Set casting, default value
+    DEBUG = (bool, False)
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+environ.Env.read_env(BASE_DIR / '.env')
+
+
 
 
 SECRET_KEY = 'django-insecure-tjdd#uw90ekj@!(6aty&e3ref)3vfzs!s1dpjx7b2wf(3dhbnx'
@@ -112,3 +122,12 @@ REST_FRAMEWORK = {
     ),
     
 }
+
+EMAIL_BACKEND = 'core.backends.email_backend.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
