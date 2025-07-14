@@ -1,4 +1,6 @@
 db.sqlite3
-.env
 apps/authentication/migrations
 apps\authentication\migrations
+apps\spaces\migrations
+apps\bookings\
+env
