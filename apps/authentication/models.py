@@ -50,3 +50,11 @@ class User(AbstractBaseUser, PermissionsMixin):
             'access':str(refresh.access_token)
         }
 
+
+class OneTimePassword(models.Model):
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6, unique=True)
+
+    def __srt__(self):
+        return f'{self.user.first_name}-passcode'
