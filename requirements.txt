@@ -5,3 +5,7 @@ djangorestframework
 djangorestframework-simplejwt
 drf-yasg==1.21.8
 django_environ==0.11.2
+psycopg2-binary==2.9.10
+whitenoise==6.8.2
+pillow==11.0.0
+gunicorn==21.2.0

@@ -19,7 +19,8 @@ SECRET_KEY = 'django-insecure-tjdd#uw90ekj@!(6aty&e3ref)3vfzs!s1dpjx7b2wf(3dhbnx
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['eventspace-api-production.up.railway.app', 'https://eventspace-api-production.up.railway.app', 'localhost', '127.0.0.0', ]
+CSRF_TRUSTED_ORIGINS = ['https://eventspace-api-production.up.railway.app']
 
 
 
@@ -33,6 +34,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
+    'whitenoise.runserver_nostatic',
 
     'apps.authentication',
     'apps.bookings',
@@ -72,10 +74,16 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('PG_NAME'),
+        'USER': 'postgres',
+        'PASSWORD': env('PG_PWD'),
+        'HOST': 'tramway.proxy.rlwy.net',
+        'PORT': '21962'
+ 
     }
 }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -105,6 +113,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# whitenoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
