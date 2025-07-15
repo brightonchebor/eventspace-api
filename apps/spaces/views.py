@@ -37,6 +37,17 @@ class CreateSpaceView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         
+        if 'image' in request.data:
+            images = request.data.get('image', [])
+            if len(images) > 5:
+                return Response({
+                    'message': 'Failed to create space',
+                    'errors': {
+                        'image': ['You can only upload a maximum of 5 images per space.']
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        
         if serializer.is_valid():
             space = serializer.save()
             return Response({
