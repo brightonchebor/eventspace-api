@@ -1,5 +1,13 @@
 from rest_framework import serializers
 from .models import User
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth.password_validation import validate_password
+from rest_framework.validators import UniqueValidator
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+
 
 class UserRegisterSerializer(serializers.ModelSerializer):
 
@@ -28,3 +36,31 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             password = validated_data['password']
         )
         return user
+    
+    class PasswordResetRequestSerializer(serializers.Serializer):
+    email  = serializers.EmailField()
+
+    def validate_email(self, value):
+        User = get_user_model()
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("No user exists with this email address")
+        return value
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        try:
+            uid = force_str(urlsafe_base64_decode(attrs['uid']))
+            user = get_user_model().objects.get(pk=uid)
+            
+            if not PasswordResetTokenGenerator().check_token(user, attrs['token']):
+                raise serializers.ValidationError("Invalid or expired token")
+            
+            attrs['user'] = user
+            return attrs
+        except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+            raise serializers.ValidationError("Invalid user ID")
+        
