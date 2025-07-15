@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import User
-<<<<<<< HEAD
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.validators import UniqueValidator
@@ -9,10 +8,8 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 
-=======
 from django.contrib.auth import authenticate
 from rest_framework.exceptions import AuthenticationFailed
->>>>>>> d248cbbeb8dac013d9e3d0627ebfcf2cfc20128e
 
 class UserRegisterSerializer(serializers.ModelSerializer):
 
@@ -42,7 +39,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         )
         return user
     
-<<<<<<< HEAD
     class PasswordResetRequestSerializer(serializers.Serializer):
     email  = serializers.EmailField()
 
@@ -70,7 +66,6 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
             raise serializers.ValidationError("Invalid user ID")
         
-=======
 class LoginSerializer(serializers.ModelSerializer):
 
     email = serializers.EmailField(max_length=255, min_length=6)
@@ -103,4 +98,3 @@ class LoginSerializer(serializers.ModelSerializer):
             'refresh_token':str(user_tokens.get('refresh')),
 
         } 
->>>>>>> d248cbbeb8dac013d9e3d0627ebfcf2cfc20128e

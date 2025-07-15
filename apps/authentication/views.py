@@ -4,7 +4,6 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
-<<<<<<< HEAD
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
 from django.urls import reverse
@@ -17,11 +16,9 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from .serializers import PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 
-=======
 from drf_yasg import openapi
 from .utils import send_code_to_user
 from .models import OneTimePassword
->>>>>>> d248cbbeb8dac013d9e3d0627ebfcf2cfc20128e
 
 class UserRegisterView(GenericAPIView):
     serializer_class = UserRegisterSerializer
@@ -43,7 +40,6 @@ class UserRegisterView(GenericAPIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-<<<<<<< HEAD
 class PasswordResetRequestView(APIView):
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
@@ -73,7 +69,6 @@ class PasswordResetConfirmView(APIView):
             user.save()
             return Response({'message': 'Password has been reset successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-=======
 class LoginUserView( GenericAPIView):
     serializer_class = LoginSerializer
 
@@ -128,4 +123,3 @@ class VerifyUserEmail(GenericAPIView):
             return Response({
                 'message':'passcode not provided'
             }, status=status.HTTP_404_NOT_FOUND)
->>>>>>> d248cbbeb8dac013d9e3d0627ebfcf2cfc20128e
