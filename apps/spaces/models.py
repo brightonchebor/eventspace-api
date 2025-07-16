@@ -14,11 +14,12 @@ class Space(models.Model):
         choices=STATUS_CHOICES,
         default='free'
     )
-    image1 = models.JSONField(default=list, blank=True)
-    image2 = models.JSONField(default=list, blank=True)
-    image3 = models.JSONField(default=list, blank=True)
-    image4 = models.JSONField(default=list, blank=True)
-    image5 = models.JSONField(default=list, blank=True)
+    # Replace single image field with five separate image fields
+    image1 = models.ImageField(upload_to='spaces/images/', blank=True, null=True)
+    image2 = models.ImageField(upload_to='spaces/images/', blank=True, null=True)
+    image3 = models.ImageField(upload_to='spaces/images/', blank=True, null=True)
+    image4 = models.ImageField(upload_to='spaces/images/', blank=True, null=True)
+    image5 = models.ImageField(upload_to='spaces/images/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     description = models.TextField(blank=True, null=True)
