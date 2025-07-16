@@ -65,14 +65,17 @@ class ListSpacesView(ListAPIView):
     List all spaces
     """
     serializer_class = SpaceSerializer
-    queryset = Space.objects.all()
+
+    def get_queryset(self):
+        # Filter to show only free spaces
+        return Space.objects.filter(status='free')
 
     @swagger_auto_schema(
-        operation_summary='List all spaces',
-        operation_description='Get a list of all available event spaces',
+        operation_summary='List all free spaces',
+        operation_description='Get a list of all available event spaces that are currently free',
         responses={
             200: openapi.Response(
-                description='List of spaces retrieved successfully',
+                description='List of free spaces retrieved successfully',
                 schema=SpaceSerializer(many=True)
             )
         }
