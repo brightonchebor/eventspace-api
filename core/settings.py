@@ -11,18 +11,55 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 environ.Env.read_env(BASE_DIR / '.env')
 
-
-
-
 SECRET_KEY = 'django-insecure-tjdd#uw90ekj@!(6aty&e3ref)3vfzs!s1dpjx7b2wf(3dhbnx'
-
 
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['eventspace-api-production.up.railway.app', 'https://eventspace-api-production.up.railway.app', 'localhost', '127.0.0.0.1', 'https://smart-space-kappa.vercel.app' ]
-CSRF_TRUSTED_ORIGINS = ['https://eventspace-api-production.up.railway.app', 'https://smart-space-kappa.vercel.app']
+# PRODUCTION-SAFE SETTINGS
+ALLOWED_HOSTS = [
+    'eventspace-api-production.up.railway.app',
+    'https://smart-space-kappa.vercel.app',
+    'smart-space-kappa.vercel.app',
+    'localhost',
+    '127.0.0.1',
+]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://eventspace-api-production.up.railway.app',
+    'https://smart-space-kappa.vercel.app',
+    'smart-space-kappa.vercel.app',
+]
 
+# CORS Settings - PRODUCTION SAFE
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_CREDENTIALS = True
+
+# Additional CORS settings for maximum compatibility
+CORS_ALLOWED_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'access-control-allow-origin',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# For debugging - this will log CORS requests
+CORS_PREFLIGHT_MAX_AGE = 86400
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -73,9 +110,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
-
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -84,7 +118,6 @@ DATABASES = {
         "PASSWORD": env("PG_PWD"),
         "HOST": env("PG_HOST", default="tramway.proxy.rlwy.net"),
         "PORT": env("PG_PORT", default="21962"),
-        # you can add conn_max_age, ssl options, etc.
     }
 }
 
@@ -103,20 +136,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'Africa/Nairobi'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 STATIC_URL = 'static/'
-
-
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # whitenoise
@@ -124,19 +149,15 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 AUTH_USER_MODEL = 'authentication.User'
 
 REST_FRAMEWORK = {
-   
     'DEFAULT_AUTHENTICATION_CLASSES': (
-       
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
     ),
-    
 }
 
 EMAIL_BACKEND = 'core.backends.email_backend.EmailBackend'
@@ -147,6 +168,3 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-
-# Add this line to your settings file if it's not already there
-AUTH_USER_MODEL = 'authentication.User'
