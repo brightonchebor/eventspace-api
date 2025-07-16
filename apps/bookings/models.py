@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from apps.spaces.models import Space
 
 class Event(models.Model):
     event_name = models.CharField(max_length=200)
@@ -39,11 +40,12 @@ class Event(models.Model):
         related_name='events',
         help_text="User who created the event"
     )
-    space = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="Venue or location of the event"
+    space = models.ForeignKey(
+        Space,
+        on_delete=models.CASCADE,
+        related_name='events',
+        help_text="Space where the event will be held"
     )
 
     def __str__(self):
-        return self.event_name            ('other', 'Other')
+        return self.event_name     

@@ -17,9 +17,9 @@ environ.Env.read_env(BASE_DIR / '.env')
 SECRET_KEY = 'django-insecure-tjdd#uw90ekj@!(6aty&e3ref)3vfzs!s1dpjx7b2wf(3dhbnx'
 
 
-DEBUG = True
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['eventspace-api-production.up.railway.app', 'https://eventspace-api-production.up.railway.app', 'localhost', '127.0.0.0', ]
+ALLOWED_HOSTS = ['eventspace-api-production.up.railway.app', 'https://eventspace-api-production.up.railway.app', 'localhost', '127.0.0.0.1', ]
 CSRF_TRUSTED_ORIGINS = ['https://eventspace-api-production.up.railway.app']
 
 
@@ -73,18 +73,27 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('PG_NAME'),
-        'USER': 'postgres',
-        'PASSWORD': env('PG_PWD'),
-        'HOST': 'tramway.proxy.rlwy.net',
-        'PORT': '21962'
- 
+if DEBUG:
+    # Local development: use SQLite
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
-
+else:
+    # Production: use PostgreSQL
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("PG_NAME"),
+            "USER": env("PG_USER", default="postgres"),
+            "PASSWORD": env("PG_PWD"),
+            "HOST": env("PG_HOST", default="tramway.proxy.rlwy.net"),
+            "PORT": env("PG_PORT", default="21962"),
+            # you can add conn_max_age, ssl options, etc.
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -145,3 +154,6 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+
+# Add this line to your settings file if it's not already there
+AUTH_USER_MODEL = 'authentication.User'
