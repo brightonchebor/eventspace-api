@@ -73,27 +73,18 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 
 
-if DEBUG:
-    # Local development: use SQLite
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("PG_NAME"),
+        "USER": env("PG_USER", default="postgres"),
+        "PASSWORD": env("PG_PWD"),
+        "HOST": env("PG_HOST", default="tramway.proxy.rlwy.net"),
+        "PORT": env("PG_PORT", default="21962"),
+        # you can add conn_max_age, ssl options, etc.
     }
-else:
-    # Production: use PostgreSQL
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("PG_NAME"),
-            "USER": env("PG_USER", default="postgres"),
-            "PASSWORD": env("PG_PWD"),
-            "HOST": env("PG_HOST", default="tramway.proxy.rlwy.net"),
-            "PORT": env("PG_PORT", default="21962"),
-            # you can add conn_max_age, ssl options, etc.
-        }
-    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
