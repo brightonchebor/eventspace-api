@@ -27,7 +27,6 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     'https://eventspace-api-production.up.railway.app',
     'https://smart-space-kappa.vercel.app',
-    'smart-space-kappa.vercel.app',
 ]
 
 # CORS Settings - PRODUCTION SAFE
