@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('apps.authentication.urls')),
     path('api/spaces/',include('apps.spaces.urls')),
+    path('api/bookings/',include('apps.bookings.urls')),
 
 
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
