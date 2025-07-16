@@ -19,8 +19,8 @@ SECRET_KEY = 'django-insecure-tjdd#uw90ekj@!(6aty&e3ref)3vfzs!s1dpjx7b2wf(3dhbnx
 
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['eventspace-api-production.up.railway.app', 'https://eventspace-api-production.up.railway.app', 'localhost', '127.0.0.0.1', ]
-CSRF_TRUSTED_ORIGINS = ['https://eventspace-api-production.up.railway.app']
+ALLOWED_HOSTS = ['eventspace-api-production.up.railway.app', 'https://eventspace-api-production.up.railway.app', 'localhost', '127.0.0.0.1', 'https://smart-space-kappa.vercel.app' ]
+CSRF_TRUSTED_ORIGINS = ['https://eventspace-api-production.up.railway.app', 'https://smart-space-kappa.vercel.app']
 
 
 
