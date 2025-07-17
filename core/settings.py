@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 import environ
+from datetime import timedelta
 
 env = environ.Env(
     # Set casting, default value
@@ -91,7 +92,6 @@ else:
             "PASSWORD": env("PG_PWD"),
             "HOST": env("PG_HOST", default="tramway.proxy.rlwy.net"),
             "PORT": env("PG_PORT", default="21962"),
-            # you can add conn_max_age, ssl options, etc.
         }
     }
 
@@ -146,6 +146,12 @@ REST_FRAMEWORK = {
     
 }
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    }
+
 EMAIL_BACKEND = 'core.backends.email_backend.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
@@ -155,5 +161,5 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
-# Add this line to your settings file if it's not already there
+
 AUTH_USER_MODEL = 'authentication.User'
