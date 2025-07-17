@@ -1,3 +1,13 @@
+# How to test the notifications app in Postman:
+# 1. Start your Django server.
+# 2. In Postman, create a POST request to: http://localhost:8000/notifications/notify_booking_created/
+# 3. In the request body, select "raw" and "JSON", then provide:
+#    {
+#      "booking_id": <valid_booking_id>
+#    }
+# 4. Send the request. You should receive a JSON response indicating success or error.
+# 5. Check your email inboxes (organizer, admin, user) for notification emails if email backend is configured.
+
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt

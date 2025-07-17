@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db import transaction
+from django.core.mail import send_mail
+from django.conf import settings
 
 from .models import Event
 from .serializers import EventSerializer, EventListSerializer
@@ -92,7 +94,34 @@ class BookEventView(CreateAPIView):
                 # Update space status to booked
                 space.status = 'booked'
                 space.save()
-                
+
+                # --- Email Notification Trigger ---
+                subject = f'Event Booking Confirmation: {event.event_name}'
+                message = (
+                    f'Your event "{event.event_name}" has been booked successfully.\n'
+                    f'Space: {space.name}\n'
+                    f'Start: {start_time}\n'
+                    f'End: {end_time}\n'
+                    f'Status: {event_status}\n'
+                )
+                # User email
+                user_email = request.user.email
+                # Organizer email (assuming space.organizer.email exists)
+                organizer_email = getattr(space.organizer, 'email', None)
+                # Admin email (from settings)
+                admin_email = getattr(settings, 'ADMIN_EMAIL', None)
+
+                recipient_list = [email for email in [user_email, organizer_email, admin_email] if email]
+
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    recipient_list,
+                    fail_silently=True
+                )
+                # --- End Email Notification ---
+
                 return Response({
                     'message': f'Event "{event.event_name}" has been booked successfully',
                     'data': serializer.data,
