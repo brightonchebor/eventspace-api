@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from apps.spaces.models import Space
 
 class Event(models.Model):
@@ -29,6 +31,8 @@ class Event(models.Model):
         choices=[
             ('pending', 'Pending'),
             ('confirmed', 'Confirmed'),
+            ('upcoming', 'Upcoming'),
+            ('completed', 'Completed'),
             ('cancelled', 'Cancelled')
         ],
         default='pending',
@@ -47,5 +51,24 @@ class Event(models.Model):
         help_text="Space where the event will be held"
     )
 
+    def clean(self):
+        if self.start_datetime and self.end_datetime:
+            if self.start_datetime >= self.end_datetime:
+                raise ValidationError('End datetime must be after start datetime')
+            if self.start_datetime < timezone.now():
+                raise ValidationError('Start datetime cannot be in the past')
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        
+        # Auto-set status to upcoming if confirmed and in the future
+        if self.status == 'confirmed' and self.start_datetime > timezone.now():
+            self.status = 'upcoming'
+        
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return self.event_name     
+        return f"{self.event_name} - {self.space.name}"
+
+    class Meta:
+        ordering = ['start_datetime']
