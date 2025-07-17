@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'apps.authentication',
     'apps.bookings',
     'apps.spaces',
+    'apps.notifications',
 ]
 
 MIDDLEWARE = [
