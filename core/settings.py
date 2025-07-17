@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 import environ
+from datetime import timedelta
 
 env = environ.Env(
     # Set casting, default value
@@ -158,6 +159,12 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
 }
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    }
 
 EMAIL_BACKEND = 'core.backends.email_backend.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
