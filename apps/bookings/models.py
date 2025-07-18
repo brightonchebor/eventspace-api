@@ -31,9 +31,10 @@ class Event(models.Model):
         choices=[
             ('pending', 'Pending'),
             ('confirmed', 'Confirmed'),
-            ('upcoming', 'Upcoming'),
+            ('cancelled', 'Cancelled'),
             ('completed', 'Completed'),
-            ('cancelled', 'Cancelled')
+            ('upcoming', 'Upcoming'),
+            ('rejected', 'Rejected'),
         ],
         default='pending',
         help_text="Status of the event"

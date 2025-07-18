@@ -9,4 +9,7 @@ psycopg2-binary==2.9.10
 whitenoise==6.8.2
 pillow==11.0.0
 gunicorn==21.2.0
+celery==5.3.6
+django-celery-beat==2.5.0
+redis==5.0.1
 
