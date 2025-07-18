@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db import transaction
@@ -12,6 +13,7 @@ from django.conf import settings
 
 from .models import Event
 from .serializers import EventSerializer, EventListSerializer
+from .tasks import update_space_on_approval
 from apps.spaces.models import Space
 
 class BookEventView(CreateAPIView):
@@ -58,10 +60,10 @@ class BookEventView(CreateAPIView):
                         'error': f'Space "{space.name}" is currently {space.status}'
                     }, status=status.HTTP_409_CONFLICT)
                 
-                # Check for conflicting bookings
+                # Check for conflicting bookings (only check confirmed events)
                 conflicting_events = Event.objects.filter(
                     space=space,
-                    status__in=['confirmed', 'upcoming'],
+                    status='confirmed',  # Only check confirmed events
                     start_datetime__lt=end_time,
                     end_datetime__gt=start_time
                 )
@@ -84,25 +86,24 @@ class BookEventView(CreateAPIView):
                         'error': f'Space capacity is {space.capacity}, but you requested for {attendance} attendees'
                     }, status=status.HTTP_400_BAD_REQUEST)
                 
-                # Create the event with confirmed/upcoming status
-                event_status = 'upcoming' if start_time > timezone.now() else 'confirmed'
+                # Create the event with pending status (requires admin approval)
                 event = serializer.save(
                     user=request.user,
-                    status=event_status
+                    status='pending'  # Always start as pending
                 )
                 
-                # Update space status to booked
-                space.status = 'booked'
-                space.save()
+                # Space remains 'free' until event is approved by admin
+                # (No space status change here)
 
                 # --- Email Notification Trigger ---
-                subject = f'Event Booking Confirmation: {event.event_name}'
+                subject = f'Event Booking Submitted: {event.event_name}'
                 message = (
-                    f'Your event "{event.event_name}" has been booked successfully.\n'
+                    f'Your event "{event.event_name}" has been submitted and is pending approval.\n'
                     f'Space: {space.name}\n'
                     f'Start: {start_time}\n'
                     f'End: {end_time}\n'
-                    f'Status: {event_status}\n'
+                    f'Status: pending\n'
+                    f'You will be notified once an admin approves your event.\n'
                 )
                 # User email
                 user_email = request.user.email
@@ -123,10 +124,11 @@ class BookEventView(CreateAPIView):
                 # --- End Email Notification ---
 
                 return Response({
-                    'message': f'Event "{event.event_name}" has been booked successfully',
+                    'message': f'Event "{event.event_name}" has been submitted for approval',
                     'data': serializer.data,
-                    'space_status': 'booked',
-                    'event_status': event_status
+                    'space_status': space.status,  # Will remain 'free'
+                    'event_status': 'pending',
+                    'note': 'Your event will appear in upcoming events once approved by an admin'
                 }, status=status.HTTP_201_CREATED)
         
         return Response({
@@ -141,25 +143,40 @@ class ListUpcomingEventsView(ListAPIView):
     serializer_class = EventListSerializer
 
     def get_queryset(self):
-        # Get all events that are upcoming or confirmed and in the future
+        # Get all events that are confirmed and in the future
         now = timezone.now()
         return Event.objects.filter(
-            status__in=['upcoming', 'confirmed'],
+            status='confirmed',  # Only confirmed events
             start_datetime__gt=now
         ).select_related('space', 'user').order_by('start_datetime')
 
     @swagger_auto_schema(
-        operation_summary='List upcoming events',
-        operation_description='Get a list of all upcoming events that are confirmed and scheduled for the future',
+        operation_summary='List upcoming confirmed events',
+        operation_description='Get a list of all upcoming confirmed events ordered by start date (nearest first)',
+        manual_parameters=[
+            openapi.Parameter(
+                'event_type',
+                openapi.IN_QUERY,
+                description='Filter events by type',
+                type=openapi.TYPE_STRING,
+                enum=['meeting', 'conference', 'webinar', 'workshop']
+            ),
+        ],
         responses={
             200: openapi.Response(
-                description='List of upcoming events retrieved successfully',
+                description='List of upcoming confirmed events retrieved successfully',
                 schema=EventListSerializer(many=True)
             )
         }
     )
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        
+        # Optional filtering by event type
+        event_type_filter = request.query_params.get('event_type', None)
+        if event_type_filter:
+            queryset = queryset.filter(event_type=event_type_filter)
+        
         serializer = self.get_serializer(queryset, many=True)
         
         return Response({
@@ -176,16 +193,20 @@ class ListMyEventsView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """
+        Filter events to show only confirmed events created by the current user
+        """
         return Event.objects.filter(
-            user=self.request.user
-        ).select_related('space').order_by('-created_at')
+            user=self.request.user,  # Current user's events
+            status='confirmed'  # Only confirmed events
+        ).select_related('space').order_by('start_datetime')
 
     @swagger_auto_schema(
-        operation_summary='List my events',
-        operation_description='Get a list of all events created by the authenticated user',
+        operation_summary='List my confirmed events',
+        operation_description='Get a list of confirmed events created by the current user',
         responses={
             200: openapi.Response(
-                description='List of user events retrieved successfully',
+                description='User confirmed events retrieved successfully',
                 schema=EventListSerializer(many=True)
             )
         }
@@ -207,4 +228,95 @@ class ListMyEventsView(ListAPIView):
             'count': queryset.count(),
             'events_by_status': events_by_status,
             'data': serializer.data
-        })
+        }, status=status.HTTP_200_OK)
+        
+class ApproveEventView(APIView):
+    """
+    Approve a pending event
+    """
+    permission_classes = [IsAdminUser]
+    
+    @swagger_auto_schema(
+        operation_summary='Approve an event',
+        operation_description='Change the status of a pending event to confirmed',
+        manual_parameters=[
+            openapi.Parameter(
+                'event_id',
+                openapi.IN_PATH,
+                description='ID of the event to approve',
+                type=openapi.TYPE_INTEGER,
+                required=True
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description='Event approved successfully'
+            ),
+            400: openapi.Response(
+                description='Bad request - event already approved or cancelled'
+            ),
+            404: openapi.Response(
+                description='Event not found'
+            )
+        }
+    )
+    def post(self, request, event_id):
+        try:
+            event = Event.objects.get(id=event_id)
+            
+            if event.status != 'pending':
+                return Response({
+                    'message': f'Event cannot be approved. Current status: {event.status}'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Update event status
+            event.status = 'confirmed'
+            event.save()
+            
+            # Trigger Celery task to update space status
+            update_space_on_approval.delay(event.id)
+            
+            return Response({
+                'message': f'Event "{event.event_name}" has been approved successfully',
+                'event_id': event.id,
+                'space': event.space.name,
+                'note': 'Space status will be updated shortly'
+            }, status=status.HTTP_200_OK)
+            
+        except Event.DoesNotExist:
+            return Response({
+                'message': 'Event not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+class CheckEventStatusView(APIView):
+    """
+    Check and update status of events that have ended
+    """
+    permission_classes = [IsAdminUser]
+    
+    @swagger_auto_schema(
+        operation_summary='Check event status',
+        operation_description='Mark completed events and update space status',
+        responses={
+            200: openapi.Response(
+                description='Events checked and updated'
+            )
+        }
+    )
+    def post(self, request):
+        # Find all confirmed events that have ended
+        ended_events = Event.objects.filter(
+            status='confirmed',
+            end_datetime__lt=timezone.now()
+        )
+        
+        count = 0
+        for event in ended_events:
+            event.status = 'completed'
+            event.save()  # This will trigger the signal to update space status
+            count += 1
+        
+        return Response({
+            'message': f'Checked event status. Marked {count} events as completed.',
+        }, status=status.HTTP_200_OK)
