@@ -39,38 +39,44 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         )
         return user
     
-class LoginSerializer(serializers.ModelSerializer):
+class LoginSerializer(serializers.Serializer):
+    id            = serializers.IntegerField(read_only=True)
+    full_name     = serializers.CharField(read_only=True)
+    role          = serializers.CharField(read_only=True)
+    access_token  = serializers.CharField(read_only=True)
+    refresh_token = serializers.CharField(read_only=True)
 
-    email = serializers.EmailField(max_length=255, min_length=6)
-    password = serializers.CharField(max_length=60, write_only=True)
-    access_token = serializers.CharField(max_length=255, read_only=True)
-    refresh_token = serializers.CharField(max_length=255, read_only=True)
-
-    class Meta:
-        model = User
-        fields = [ 'email', 'password', 'access_token', 'refresh_token']
+    email    = serializers.EmailField(write_only=True, max_length=255)
+    password = serializers.CharField(write_only=True, max_length=128)
 
     def validate(self, attrs):
-        email = attrs.get('email')
+        email    = attrs.get('email')
         password = attrs.get('password')
-        request = self.context.get('request')
-        user = authenticate(request, email=email, password=password)
-        
-        if not user:
-            raise AuthenticationFailed("invalid credentials try again")
+        user = authenticate(
+            request=self.context.get('request'),
+            email=email,
+            password=password
+        )
 
+        if not user:
+            raise AuthenticationFailed("Invalid credentials, try again.")
         if not user.is_verified:
-            raise AuthenticationFailed("email is not verified")
-         
-        user_tokens = user.tokens() 
+            raise AuthenticationFailed("Email is not verified.")
+
+        # Generate JWT tokens
+        tokens = user.tokens()
 
         return {
-            'email':user.email,
-            'full_name':user.get_full_name,
-            'access_token':str(user_tokens.get('access')),
-            'refresh_token':str(user_tokens.get('refresh')),
+            'id':            user.pk,
+            'full_name':     user.get_full_name,
+            'role':          user.role,
+            'access_token':  tokens['access'],
+            'refresh_token': tokens['refresh'],
+        }
 
-        } 
+    def to_representation(self, validated_data):
+        # Simply return exactly what validate() returned
+        return validated_data
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     email =serializers.EmailField(max_length=255)
@@ -85,7 +91,8 @@ class PasswordResetRequestSerializer(serializers.Serializer):
             uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
             token = PasswordResetTokenGenerator().make_token(user)
             request = self.context.get('request')
-            site_domain = get_current_site(request).domain
+            # site_domain = get_current_site(request).domain
+            site_domain = "localhost:5173"
             relative_link = reverse('password-reset-confirm', kwargs={
                 'uidb64':uidb64,
                 'token':token
@@ -99,7 +106,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
             }
             send_normal_email(data)
         return super().validate(attrs)   
-
+# http://localhost:5173/password-reset-confirm/MQ/ctadwo-f74800b67dcf04d02d9b57fa7d57957e/
 class  SetNewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=100, min_length=6, write_only=True)
     password_confirm = serializers.CharField(max_length=100, min_length=6, write_only=True)

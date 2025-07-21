@@ -62,6 +62,7 @@ CORS_ALLOW_METHODS = [
 CORS_PREFLIGHT_MAX_AGE = 86400
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -72,11 +73,12 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'whitenoise.runserver_nostatic',
-    'corsheaders', 
+    'django_celery_beat',
 
     'apps.authentication',
     'apps.bookings',
     'apps.spaces',
+    'apps.notifications',
 ]
 
 MIDDLEWARE = [
@@ -174,3 +176,70 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+
+# Add this line to your settings file if it's not already there
+AUTH_USER_MODEL = 'authentication.User'
+
+# Celery settings
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+SWAGGER_SETTINGS = {
+    'DOC_EXPANSION': 'none',
+    'SWAGGER_UI_PARAMETERS': {
+        'defaultModelsExpandDepth': -1,
+        'docExpansion': 'none',
+        'models': {},  # Empty models object
+        'showModels': False,
+        'displayModels': False,
+    },
+    'USE_SESSION_AUTH': False,
+    'JSON_EDITOR': True,
+    'SHOW_REQUEST_HEADERS': True,
+}
+
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Event Management System",
+    "topmenu_links": [
+        {"app": "bookings"},
+    ],
+    "show_ui_builder": False,
+
+}
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": True,
+    "brand_small_text": False,
+    "brand_colour": False,
+    "accent": "accent-primary",
+    "navbar": "navbar-white navbar-light",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": False,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": True,
+    "sidebar_nav_legacy_style": True,
+    "sidebar_nav_flat_style": True,
+    "theme": "yeti",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-outline-primary",
+        "secondary": "btn-outline-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
+}

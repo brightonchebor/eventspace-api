@@ -60,22 +60,3 @@ class CreateSpaceView(CreateAPIView):
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
-class ListSpacesView(ListAPIView):
-    """
-    List all spaces
-    """
-    serializer_class = SpaceSerializer
-    queryset = Space.objects.all()
-
-    @swagger_auto_schema(
-        operation_summary='List all spaces',
-        operation_description='Get a list of all available event spaces',
-        responses={
-            200: openapi.Response(
-                description='List of spaces retrieved successfully',
-                schema=SpaceSerializer(many=True)
-            )
-        }
-    )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
