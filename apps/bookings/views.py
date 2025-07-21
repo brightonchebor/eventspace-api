@@ -60,31 +60,26 @@ class BookEventView(CreateAPIView):
                         'error': f'Space "{space.name}" is currently {space.status}'
                     }, status=status.HTTP_409_CONFLICT)
                 
-                # Check for conflicting bookings (only check confirmed events)
+                # Check for any conflicting bookings (both pending and confirmed events)
                 conflicting_events = Event.objects.filter(
                     space=space,
-                    status='confirmed',  # Only check confirmed events
+                    status__in=['pending', 'confirmed'],  # Check both pending and confirmed events
                     start_datetime__lt=end_time,
                     end_datetime__gt=start_time
                 )
                 
                 if conflicting_events.exists():
+                    # Get the conflicting event details
+                    conflict = conflicting_events.first()
                     return Response({
-                        'message': 'Time slot conflict',
-                        'error': 'The selected time slot conflicts with existing bookings',
-                        'conflicting_events': [
-                            f"{event.event_name} ({event.start_datetime} - {event.end_datetime})"
-                            for event in conflicting_events
-                        ]
+                        'message': 'Space already booked for this time',
+                        'details': {
+                            'booked_event': conflict.event_name,
+                            'from': conflict.start_datetime.strftime('%Y-%m-%d %H:%M'),
+                            'to': conflict.end_datetime.strftime('%Y-%m-%d %H:%M'),
+                            'status': conflict.status
+                        }
                     }, status=status.HTTP_409_CONFLICT)
-                
-                # Check space capacity
-                attendance = serializer.validated_data['attendance']
-                if attendance > space.capacity:
-                    return Response({
-                        'message': 'Attendance exceeds space capacity',
-                        'error': f'Space capacity is {space.capacity}, but you requested for {attendance} attendees'
-                    }, status=status.HTTP_400_BAD_REQUEST)
                 
                 # Create the event with pending status (requires admin approval)
                 event = serializer.save(
@@ -124,11 +119,11 @@ class BookEventView(CreateAPIView):
                 # --- End Email Notification ---
 
                 return Response({
-                    'message': f'Event "{event.event_name}" has been submitted for approval',
-                    'data': serializer.data,
-                    'space_status': space.status,  # Will remain 'free'
-                    'event_status': 'pending',
-                    'note': 'Your event will appear in upcoming events once approved by an admin'
+                    'message': 'Event booked successfully',
+                    'event_name': event.event_name,
+                    'space': space.name,
+                    'start_time': start_time.strftime('%Y-%m-%d %H:%M'),
+                    'status': event.status
                 }, status=status.HTTP_201_CREATED)
         
         return Response({
@@ -143,10 +138,10 @@ class ListUpcomingEventsView(ListAPIView):
     serializer_class = EventListSerializer
 
     def get_queryset(self):
-        # Get all events that are confirmed and in the future
+        """Get all upcoming events (confirmed and in the future)"""
         now = timezone.now()
         return Event.objects.filter(
-            status='confirmed',  # Only confirmed events
+            status='confirmed',
             start_datetime__gt=now
         ).select_related('space', 'user').order_by('start_datetime')
 

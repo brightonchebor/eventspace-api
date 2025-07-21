@@ -22,7 +22,9 @@ class Event(models.Model):
         help_text="Type of event being booked"
     )
     attendance = models.PositiveIntegerField(
-        help_text="Expected number of attendees"
+        help_text="Expected number of attendees",
+        null=True,
+        blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -33,12 +35,16 @@ class Event(models.Model):
             ('confirmed', 'Confirmed'),
             ('cancelled', 'Cancelled'),
             ('completed', 'Completed'),
-            ('upcoming', 'Upcoming'),
             ('rejected', 'Rejected'),
         ],
         default='pending',
         help_text="Status of the event"
     )
+    
+    @property
+    def is_upcoming(self):
+        """Check if the event is upcoming (confirmed and in the future)"""
+        return self.status == 'confirmed' and self.start_datetime > timezone.now()
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
