@@ -79,10 +79,11 @@ def notify_booking_created(request):
 def send_booking_approved_notification(event, spaces, user):
     user_email = user.email
     user_name = user.get_full_name() if callable(getattr(user, 'get_full_name', None)) else getattr(user, 'username', user.email)
+    first_name = user.first_name if hasattr(user, 'first_name') else user_name
 
     subject = f"Booking Approved: {event.event_name}"
     message = (
-        f"Dear {user_name},\n\n"
+        f"Dear {first_name},\n\n"
         f"Your booking for event '{event.event_name}' and spaces {spaces} has been approved by the admin.\n"
         "You may proceed with your event.\n\n"
         "Regards,\nEventSpace Team"
