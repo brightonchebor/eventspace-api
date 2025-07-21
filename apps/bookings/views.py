@@ -224,7 +224,7 @@ class ListMyEventsView(ListAPIView):
             events_by_status[status_key] += 1
         
         return Response({
-            'message': f'Found {queryset.count()} events for user {request.user.username}',
+            'message': f'Found {queryset.count()} events for user {request.user.email}',
             'count': queryset.count(),
             'events_by_status': events_by_status,
             'data': serializer.data

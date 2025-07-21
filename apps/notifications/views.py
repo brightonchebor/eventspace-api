@@ -1,13 +1,3 @@
-# How to test the notifications app in Postman:
-# 1. Start your Django server.
-# 2. In Postman, create a POST request to: http://localhost:8000/notifications/notify_booking_created/
-# 3. In the request body, select "raw" and "JSON", then provide:
-#    {
-#      "booking_id": <valid_booking_id>
-#    }
-# 4. Send the request. You should receive a JSON response indicating success or error.
-# 5. Check your email inboxes (organizer, admin, user) for notification emails if email backend is configured.
-
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -15,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import json
 
-from apps.bookings.models import Booking  # Booking model
+from apps.bookings.models import  Event # Booking model
 from apps.authentication.models import User        # User model
 
 def send_booking_notifications(event, spaces, user):
@@ -30,27 +20,26 @@ def send_booking_notifications(event, spaces, user):
     user_email = user.email
     user_name = user.get_full_name() if hasattr(user, 'get_full_name') else user.username
 
-    subject = f"Booking Confirmation for Event: {event.name}"
-    message = (
+    # Email to organizer: booking pending approval
+    subject_org = f"Booking Pending Approval: {event.event_name}"
+    message_org = (
         f"Dear {organizer_name},\n\n"
-        f"The event '{event.name}' has been booked by {user_name}.\n"
+        f"A new booking for event '{event.event_name}' has been made by {user_name}.\n"
+        f"Spaces booked: {spaces}\n"
+        "Status: Pending approval from admin.\n\n"
+        "Regards,\nEventSpace Team"
+    )
+    send_mail(subject_org, message_org, settings.DEFAULT_FROM_EMAIL, [organizer_email])
+
+    # Optionally, notify admin(s) about pending booking
+    subject_admin = f"Booking Approval Needed: {event.event_name}"
+    message_admin = (
+        f"Admin,\n\n"
+        f"A new booking for event '{event.event_name}' by {user_name} is awaiting your approval.\n"
         f"Spaces booked: {spaces}\n\n"
         "Regards,\nEventSpace Team"
     )
-
-    # Send to organizer
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [organizer_email])
-
-    # Send to admin(s)
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, admin_emails)
-
-    # Send to user
-    user_message = (
-        f"Dear {user_name},\n\n"
-        f"Your booking for event '{event.event_name}' and spaces {spaces} is confirmed.\n\n"
-        "Regards,\nEventSpace Team"
-    )
-    send_mail(subject, user_message, settings.DEFAULT_FROM_EMAIL, [user_email])
+    send_mail(subject_admin, message_admin, settings.DEFAULT_FROM_EMAIL, admin_emails)
 
 @csrf_exempt
 def notify_booking_created(request):
@@ -68,8 +57,8 @@ def notify_booking_created(request):
         return JsonResponse({'error': 'Invalid data.'}, status=400)
 
     try:
-        booking = Booking.objects.select_related('user', 'event').get(id=booking_id)
-    except Booking.DoesNotExist:
+        booking = Event.objects.select_related('user', 'event').get(id=booking_id)
+    except Event.DoesNotExist:
         return JsonResponse({'error': 'Booking not found.'}, status=404)
 
     user = booking.user
@@ -86,3 +75,18 @@ def notify_booking_created(request):
     send_booking_notifications(event, booking.spaces, user)
 
     return JsonResponse({'success': True, 'message': message})
+
+def send_booking_approved_notification(event, spaces, user):
+    user_email = user.email
+    user_name = user.get_full_name() if callable(getattr(user, 'get_full_name', None)) else getattr(user, 'username', user.email)
+
+    subject = f"Booking Approved: {event.event_name}"
+    message = (
+        f"Dear {user_name},\n\n"
+        f"Your booking for event '{event.event_name}' and spaces {spaces} has been approved by the admin.\n"
+        "You may proceed with your event.\n\n"
+        "Regards,\nEventSpace Team"
+    )
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email])
+
+
