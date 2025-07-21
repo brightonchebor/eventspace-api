@@ -112,17 +112,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("PG_NAME"),
-        "USER": env("PG_USER", default="postgres"),
-        "PASSWORD": env("PG_PWD"),
-        "HOST": env("PG_HOST", default="tramway.proxy.rlwy.net"),
-        "PORT": env("PG_PORT", default="21962"),
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
-
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("PG_NAME"),
+            "USER": env("PG_USER", default="postgres"),
+            "PASSWORD": env("PG_PWD"),
+            "HOST": env("PG_HOST", default="tramway.proxy.rlwy.net"),
+            "PORT": env("PG_PORT", default="21962"),
+        }
+    }
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
