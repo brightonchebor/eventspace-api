@@ -45,6 +45,23 @@ class Event(models.Model):
     def is_upcoming(self):
         """Check if the event is upcoming (confirmed and in the future)"""
         return self.status == 'confirmed' and self.start_datetime > timezone.now()
+
+    @property
+    def event_status_display(self):
+        """Get a human-readable status that includes timing information"""
+        now = timezone.now()
+        if self.status == 'confirmed':
+            if self.start_datetime > now:
+                return 'Confirmed - Upcoming'
+            elif self.end_datetime < now:
+                return 'Confirmed - Completed'
+            else:
+                return 'Confirmed - In Progress'
+        return self.get_status_display()
+
+    def __str__(self):
+        return f"{self.event_name} ({self.event_status_display})"
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -67,11 +84,6 @@ class Event(models.Model):
 
     def save(self, *args, **kwargs):
         self.clean()
-        
-        # Auto-set status to upcoming if confirmed and in the future
-        if self.status == 'confirmed' and self.start_datetime > timezone.now():
-            self.status = 'upcoming'
-        
         super().save(*args, **kwargs)
 
     def __str__(self):
