@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django.utils.html import format_html
 from .models import Event
-from apps.notifications.views import send_booking_approved_notification
+from apps.notifications.views import send_booking_approved_notification, send_booking_rejected_notification
 
 # Define status choices as constants to ensure consistency
 STATUS_PENDING = 'pending'
@@ -202,6 +202,13 @@ class EventAdmin(admin.ModelAdmin):
                     level='ERROR'
                 )
                 obj.status = old_status
+        
+        # Send rejection email if status changed to 'rejected'
+        if change:
+            old_obj = Event.objects.get(pk=obj.pk)
+            # Send rejection email if status changed to 'rejected'
+            if old_obj.status != 'rejected' and obj.status == 'rejected':
+                send_booking_rejected_notification(obj, obj.space, obj.user)
         
         super().save_model(request, obj, form, change)
 
