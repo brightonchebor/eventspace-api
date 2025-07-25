@@ -7,9 +7,9 @@ from drf_yasg import openapi
 from .models import Space
 from .serializers import SpaceSerializer
 
-class CreateSpaceView(CreateAPIView):
+class ListSpacesView(ListAPIView):
     """
-    Create a new space
+    List all spaces
     """
     serializer_class = SpaceSerializer
     queryset = Space.objects.all()

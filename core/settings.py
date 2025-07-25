@@ -12,18 +12,54 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 environ.Env.read_env(BASE_DIR / '.env')
 
-
-
-
 SECRET_KEY = 'django-insecure-tjdd#uw90ekj@!(6aty&e3ref)3vfzs!s1dpjx7b2wf(3dhbnx'
-
 
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['eventspace-api-production.up.railway.app', 'https://eventspace-api-production.up.railway.app', 'localhost', '127.0.0.1', ]
-CSRF_TRUSTED_ORIGINS = ['https://eventspace-api-production.up.railway.app']
+# PRODUCTION-SAFE SETTINGS
+ALLOWED_HOSTS = [
+    'eventspace-api-production.up.railway.app',
+    'https://smart-space-kappa.vercel.app',
+    'smart-space-kappa.vercel.app',
+    'localhost',
+    '127.0.0.1',
+]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://eventspace-api-production.up.railway.app',
+    'https://smart-space-kappa.vercel.app',
+]
 
+# CORS Settings - PRODUCTION SAFE
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_CREDENTIALS = True
+
+# Additional CORS settings for maximum compatibility
+CORS_ALLOWED_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'access-control-allow-origin',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# For debugging - this will log CORS requests
+CORS_PREFLIGHT_MAX_AGE = 86400
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -46,6 +82,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -75,10 +112,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
-
 if DEBUG:
-    # Local development: use SQLite
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -86,7 +120,6 @@ if DEBUG:
         }
     }
 else:
-    # Production: use PostgreSQL
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -97,7 +130,6 @@ else:
             "PORT": env("PG_PORT", default="21962"),
         }
     }
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -113,20 +145,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'Africa/Nairobi'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 STATIC_URL = 'static/'
-
-
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # whitenoise
@@ -134,19 +158,15 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 AUTH_USER_MODEL = 'authentication.User'
 
 REST_FRAMEWORK = {
-   
     'DEFAULT_AUTHENTICATION_CLASSES': (
-       
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
     ),
-    
 }
 
 SIMPLE_JWT = {
