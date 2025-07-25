@@ -14,26 +14,27 @@ class CreateSpaceView(CreateAPIView):
     serializer_class = SpaceSerializer
     queryset = Space.objects.all()
 
-    @swagger_auto_schema(
-        operation_summary='Create a new space',
-        operation_description='Create a new event space with the provided details',
-        request_body=SpaceSerializer,
-        responses={
-            201: openapi.Response(
-                description='Space created successfully',
-                schema=SpaceSerializer
-            ),
-            400: openapi.Response(
-                description='Bad request - validation errors',
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        'error': openapi.Schema(type=openapi.TYPE_STRING)
-                    }
-                )
-            )
-        }
-    )
+    # @swagger_auto_schema(
+    #     operation_summary='Create a new space',
+    #     operation_description='Create a new event space with the provided details',
+    #     request_body=SpaceSerializer,
+    #     responses={
+    #         201: openapi.Response(
+    #             description='Space created successfully',
+    #             schema=SpaceSerializer
+    #         ),
+    #         400: openapi.Response(
+    #             description='Bad request - validation errors',
+    #             schema=openapi.Schema(
+    #                 type=openapi.TYPE_OBJECT,
+    #                 properties={
+    #                     'error': openapi.Schema(type=openapi.TYPE_STRING)
+    #                 }
+    #             )
+    #         )
+    #     }
+    # )
+    @swagger_auto_schema(auto_schema=None)
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         
