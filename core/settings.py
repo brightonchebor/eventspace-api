@@ -201,9 +201,17 @@ SWAGGER_SETTINGS = {
     'SWAGGER_UI_PARAMETERS': {
         'defaultModelsExpandDepth': -1,
         'docExpansion': 'none',
-        'models': {},  # Empty models object
+        'models': {},
         'showModels': False,
         'displayModels': False,
+    },
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization',
+            'description': 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer <your_token>"',
+        }
     },
     'USE_SESSION_AUTH': False,
     'JSON_EDITOR': True,
