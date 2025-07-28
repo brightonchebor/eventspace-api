@@ -91,3 +91,47 @@ class Event(models.Model):
 
     class Meta:
         ordering = ['start_datetime']
+
+class Booking(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('cancelled', 'Cancelled'),
+        ('completed', 'Completed'),
+    ]
+    
+    EVENT_TYPE_CHOICES = [
+        ('internal', 'Internal Event'),
+        ('external', 'External Event'),
+        ('conference', 'Conference'),
+        ('workshop', 'Workshop'),
+        ('meeting', 'Meeting'),
+        ('other', 'Other'),
+    ]
+    
+    event_name = models.CharField(max_length=255)
+    start_datetime = models.DateTimeField()
+    end_datetime = models.DateTimeField()
+    organizer_name = models.CharField(max_length=255)
+    organizer_email = models.EmailField()
+    event_type = models.CharField(max_length=50, choices=EVENT_TYPE_CHOICES)
+    attendance = models.PositiveIntegerField(help_text="Expected number of attendees")
+    required_resources = models.TextField(null=True, blank=True, help_text="Required resources for the event (comma separated)")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    space = models.ForeignKey(Space, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.event_name} ({self.start_datetime.strftime('%Y-%m-%d')})"
+        
+    class Meta:
+        ordering = ['-start_datetime']
+        # Ensure no double bookings for the same space
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(start_datetime__lt=models.F('end_datetime')),
+                name='start_before_end'
+            )
+        ]
