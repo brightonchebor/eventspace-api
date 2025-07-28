@@ -20,8 +20,19 @@ SECRET_KEY = 'django-insecure-tjdd#uw90ekj@!(6aty&e3ref)3vfzs!s1dpjx7b2wf(3dhbnx
 
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['eventspace-api-production.up.railway.app', 'https://eventspace-api-production.up.railway.app', 'localhost', '127.0.0.1', '10.0.6.34' ]
-CSRF_TRUSTED_ORIGINS = ['https://eventspace-api-production.up.railway.app', 'http://localhost:8000', 'http://10.0.6.34', 'http://127.0.0.1']
+ALLOWED_HOSTS = [
+    'eventspace-api-production.up.railway.app',
+    'https://eventspace-api-production.up.railway.app',
+    'localhost',
+    '127.0.0.1',
+    '10.0.6.34',
+]
+CSRF_TRUSTED_ORIGINS = [
+    'https://eventspace-api-production.up.railway.app',
+    'http://localhost:8000',
+    'http://10.0.6.34',
+    'http://127.0.0.1',
+]
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -61,7 +72,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'core', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -244,3 +255,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 # Media files (uploaded by users)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Site URL for absolute URLs in emails
+# In production, set this to the actual domain
+SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000')

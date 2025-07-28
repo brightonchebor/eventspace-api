@@ -8,7 +8,8 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db import transaction
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.template.loader import render_to_string
 from django.conf import settings
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
@@ -107,6 +108,8 @@ class BookEventView(CreateAPIView):
 
                 # --- Email Notification Trigger ---
                 subject = f'Event Booking Submitted: {event.event_name}'
+                
+                # Plain text version (fallback)
                 message = (
                     f'Your event "{event.event_name}" has been submitted and is pending approval.\n'
                     f'Space: {space.name}\n'
@@ -115,22 +118,51 @@ class BookEventView(CreateAPIView):
                     f'Status: pending\n'
                     f'You will be notified once an admin approves your event.\n'
                 )
+                
                 # User email
                 user_email = request.user.email
+                user_name = request.user.get_full_name() if hasattr(request.user, 'get_full_name') and callable(request.user.get_full_name) else request.user.username
+                
                 # Organizer email (assuming space.organizer.email exists)
                 organizer_email = getattr(space.organizer, 'email', None)
+                
                 # Admin email (from settings)
                 admin_email = getattr(settings, 'ADMIN_EMAIL', None)
 
                 recipient_list = [email for email in [user_email, organizer_email, admin_email] if email]
-
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    recipient_list,
-                    fail_silently=True
-                )
+                
+                # HTML version for the user
+                context = {
+                    'subject': subject,
+                    'user_name': user_name,
+                    'event_name': event.event_name,
+                    'space_name': space.name,
+                    'start_datetime': start_time,
+                    'end_datetime': end_time,
+                }
+                html_message = render_to_string('emails/booking_submitted.html', context)
+                
+                # Send to user with HTML
+                if user_email:
+                    email_message = EmailMultiAlternatives(
+                        subject=subject,
+                        body=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to=[user_email]
+                    )
+                    email_message.attach_alternative(html_message, "text/html")
+                    email_message.send(fail_silently=True)
+                
+                # Send to others (organizer, admin) without HTML template
+                other_recipients = [email for email in [organizer_email, admin_email] if email]
+                if other_recipients:
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        other_recipients,
+                        fail_silently=True
+                    )
                 # --- End Email Notification ---
 
                 return Response({
