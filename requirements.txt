@@ -1,5 +1,6 @@
+djangorestframework
 asgiref==3.9.1
-Django==5.2.4
+Django==4.2.11
 sqlparse==0.5.3
 djangorestframework
 djangorestframework-simplejwt
@@ -13,4 +14,4 @@ celery==5.3.6
 django-celery-beat==2.5.0
 redis==5.0.1
 django-jazzmin==3.0.1
-
+django-cors-headers
