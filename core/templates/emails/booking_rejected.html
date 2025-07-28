@@ -1,0 +1,22 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h1>Booking Not Approved</h1>
+
+<p>Dear {{ first_name }},</p>
+
+<p>We regret to inform you that your booking for event <span class="highlight">'{{ event.event_name }}'</span> and spaces {{ spaces }} has not been approved at this time.</p>
+
+<div class="event-details">
+    <p><strong>Event Details:</strong></p>
+    <p>Event: {{ event.event_name }}</p>
+    <p>Date: {{ event.start_datetime|date:"F j, Y" }}</p>
+    <p>Time: {{ event.start_datetime|time:"g:i A" }} - {{ event.end_datetime|time:"g:i A" }}</p>
+    <p>Status: <span class="highlight">Not Approved</span></p>
+</div>
+
+<p>If you'd like to discuss this further or make alternative arrangements, please contact our support team.</p>
+
+<p>Regards,<br>
+SmartSpace Team</p>
+{% endblock %}

@@ -8,11 +8,14 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db import transaction
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.template.loader import render_to_string
 from django.conf import settings
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import api_view, permission_classes
 
-from .models import Event
-from .serializers import EventSerializer, EventListSerializer
+from .models import Event, Booking
+from .serializers import EventSerializer, EventListSerializer, BookingSerializer
 from .tasks import update_space_on_approval
 from apps.spaces.models import Space
 
@@ -27,7 +30,20 @@ class BookEventView(CreateAPIView):
     @swagger_auto_schema(
         operation_summary='Book a new event',
         operation_description='Create a new event booking and automatically update space status',
-        request_body=EventSerializer,
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['event_name', 'start_datetime', 'end_datetime', 'organizer_name', 'organizer_email', 'event_type', 'space'],
+            properties={
+                'event_name': openapi.Schema(type=openapi.TYPE_STRING, description='Name of the event'),
+                'start_datetime': openapi.Schema(type=openapi.TYPE_STRING, format='date-time', description='Start date and time of the event (ISO format)'),
+                'end_datetime': openapi.Schema(type=openapi.TYPE_STRING, format='date-time', description='End date and time of the event (ISO format)'),
+                'organizer_name': openapi.Schema(type=openapi.TYPE_STRING, description='Name of the event organizer'),
+                'organizer_email': openapi.Schema(type=openapi.TYPE_STRING, format='email', description='Email of the event organizer'),
+                'event_type': openapi.Schema(type=openapi.TYPE_STRING, enum=['meeting', 'conference', 'webinar', 'workshop'], description='Type of event being booked'),
+                'attendance': openapi.Schema(type=openapi.TYPE_INTEGER, description='Expected number of attendees (optional)', nullable=True),
+                'space': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID of the space where the event will be held')
+            }
+        ),
         responses={
             201: openapi.Response(
                 description='Event booked successfully',
@@ -92,6 +108,8 @@ class BookEventView(CreateAPIView):
 
                 # --- Email Notification Trigger ---
                 subject = f'Event Booking Submitted: {event.event_name}'
+                
+                # Plain text version (fallback)
                 message = (
                     f'Your event "{event.event_name}" has been submitted and is pending approval.\n'
                     f'Space: {space.name}\n'
@@ -100,22 +118,51 @@ class BookEventView(CreateAPIView):
                     f'Status: pending\n'
                     f'You will be notified once an admin approves your event.\n'
                 )
+                
                 # User email
                 user_email = request.user.email
+                user_name = request.user.get_full_name() if hasattr(request.user, 'get_full_name') and callable(request.user.get_full_name) else request.user.username
+                
                 # Organizer email (assuming space.organizer.email exists)
                 organizer_email = getattr(space.organizer, 'email', None)
+                
                 # Admin email (from settings)
                 admin_email = getattr(settings, 'ADMIN_EMAIL', None)
 
                 recipient_list = [email for email in [user_email, organizer_email, admin_email] if email]
-
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    recipient_list,
-                    fail_silently=True
-                )
+                
+                # HTML version for the user
+                context = {
+                    'subject': subject,
+                    'user_name': user_name,
+                    'event_name': event.event_name,
+                    'space_name': space.name,
+                    'start_datetime': start_time,
+                    'end_datetime': end_time,
+                }
+                html_message = render_to_string('emails/booking_submitted.html', context)
+                
+                # Send to user with HTML
+                if user_email:
+                    email_message = EmailMultiAlternatives(
+                        subject=subject,
+                        body=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to=[user_email]
+                    )
+                    email_message.attach_alternative(html_message, "text/html")
+                    email_message.send(fail_silently=True)
+                
+                # Send to others (organizer, admin) without HTML template
+                other_recipients = [email for email in [organizer_email, admin_email] if email]
+                if other_recipients:
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        other_recipients,
+                        fail_silently=True
+                    )
                 # --- End Email Notification ---
 
                 return Response({
@@ -189,19 +236,18 @@ class ListMyEventsView(ListAPIView):
 
     def get_queryset(self):
         """
-        Filter events to show only confirmed events created by the current user
+        Filter events to show all events created by the current user regardless of status
         """
         return Event.objects.filter(
-            user=self.request.user,  # Current user's events
-            status='confirmed'  # Only confirmed events
+            user=self.request.user  # Current user's events - no status filter
         ).select_related('space').order_by('start_datetime')
 
     @swagger_auto_schema(
-        operation_summary='List my confirmed events',
-        operation_description='Get a list of confirmed events created by the current user',
+        operation_summary='List all my events',
+        operation_description='Get a list of all events created by the current user regardless of status',
         responses={
             200: openapi.Response(
-                description='User confirmed events retrieved successfully',
+                description='User events retrieved successfully',
                 schema=EventListSerializer(many=True)
             )
         }
@@ -315,3 +361,41 @@ class CheckEventStatusView(APIView):
         return Response({
             'message': f'Checked event status. Marked {count} events as completed.',
         }, status=status.HTTP_200_OK)
+
+class BookingViewSet(viewsets.ModelViewSet):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_summary="Create a new booking",
+        operation_description="Create a new booking for an event space",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['event_name', 'start_datetime', 'end_datetime', 'organizer_name', 
+                     'organizer_email', 'event_type', 'attendance', 'space'],
+            properties={
+                'event_name': openapi.Schema(type=openapi.TYPE_STRING, description="Name of the event"),
+                'start_datetime': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME, description="Start date and time of the booking"),
+                'end_datetime': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME, description="End date and time of the booking"),
+                'organizer_name': openapi.Schema(type=openapi.TYPE_STRING, description="Name of the event organizer"),
+                'organizer_email': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_EMAIL, description="Email of the event organizer"),
+                'event_type': openapi.Schema(type=openapi.TYPE_STRING, description="Type of event (e.g., Internal, Workshop, Conference)"),
+                'attendance': openapi.Schema(type=openapi.TYPE_INTEGER, description="Expected number of attendees"),
+                'required_resources': openapi.Schema(type=openapi.TYPE_STRING, description="Resources needed (e.g., Projector, Whiteboard, Video Conferencing)"),
+                'space': openapi.Schema(type=openapi.TYPE_INTEGER, description="ID of the space being booked"),
+            }
+        ),
+        responses={
+            201: openapi.Response(description="Booking created successfully", schema=BookingSerializer),
+            400: "Bad Request - Invalid data",
+            403: "Permission Denied"
+        }
+    )
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            # Set the current user as the booking user
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
