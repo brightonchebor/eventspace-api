@@ -11,3 +11,4 @@ apps\authentication\migrations
 
 # Ignore images in spaces folder
 spaces/images/
+media/
