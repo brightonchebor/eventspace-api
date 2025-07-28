@@ -41,12 +41,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     
 class LoginSerializer(serializers.Serializer):
     id            = serializers.IntegerField(read_only=True)
-    fist_name     = serializers.CharField(read_only=True)
-    last_name     = serializers.CharField(read_only=True)
+    full_name     = serializers.CharField(read_only=True)
     role          = serializers.CharField(read_only=True)
     access_token  = serializers.CharField(read_only=True)
     refresh_token = serializers.CharField(read_only=True)
-    email    = serializers.EmailField(max_length=255)
+
+    email    = serializers.EmailField(write_only=True, max_length=255)
     password = serializers.CharField(write_only=True, max_length=128)
 
     def validate(self, attrs):
@@ -68,15 +68,14 @@ class LoginSerializer(serializers.Serializer):
 
         return {
             'id':            user.pk,
-            'first_name':     user.first_name,
-            'last_name':     user.last_name,
-            'email': user.email,
+            'full_name':     user.get_full_name,
             'role':          user.role,
             'access_token':  tokens['access'],
             'refresh_token': tokens['refresh'],
         }
 
     def to_representation(self, validated_data):
+        # Simply return exactly what validate() returned
         return validated_data
 
 class PasswordResetRequestSerializer(serializers.Serializer):
@@ -107,8 +106,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
             }
             send_normal_email(data)
         return super().validate(attrs)   
-
-
+# http://localhost:5173/password-reset-confirm/MQ/ctadwo-f74800b67dcf04d02d9b57fa7d57957e/
 class  SetNewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=100, min_length=6, write_only=True)
     password_confirm = serializers.CharField(max_length=100, min_length=6, write_only=True)
@@ -156,4 +154,11 @@ class LogoutUsererializer(serializers.Serializer):
             token = RefreshToken(self.token)
             token.blacklist()
         except TokenError:
-            return self.fail('bad_token')                          
+            return self.fail('bad_token')
+
+class UserSerializer(serializers.ModelSerializer):
+    """Serializer for user objects"""
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'username', 'first_name', 'last_name']
+        read_only_fields = ['id']

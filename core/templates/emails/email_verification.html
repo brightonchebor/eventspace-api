@@ -1,0 +1,20 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h1>Verify Your Email</h1>
+
+<p>Dear {{ first_name }},</p>
+
+<p>Thank you for signing up with <span class="highlight">SmartSpace</span>. To complete your registration, please verify your email address using the verification code below:</p>
+
+<div class="event-details" style="text-align: center; padding: 25px 15px;">
+    <p style="font-size: 24px; font-weight: bold; letter-spacing: 4px; margin: 0;">{{ otp_code }}</p>
+</div>
+
+<p>Please enter this code on the verification page to activate your account.</p>
+
+<p>If you did not create an account with SmartSpace, please ignore this email.</p>
+
+<p>Regards,<br>
+SmartSpace Team</p>
+{% endblock %}

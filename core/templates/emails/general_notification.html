@@ -1,0 +1,10 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h1>{{ email_subject }}</h1>
+
+<p>{{ email_body|linebreaks }}</p>
+
+<p>Regards,<br>
+SmartSpace Team</p>
+{% endblock %}
