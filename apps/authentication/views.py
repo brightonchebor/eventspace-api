@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .serializers import *
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, RetrieveAPIView # Import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
@@ -9,7 +9,7 @@ from .utils import send_code_to_user
 from .models import OneTimePassword, User
 
 
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser # Import IsAdminUser
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import smart_str, DjangoUnicodeDecodeError
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -127,7 +127,7 @@ class UserRegisterView(GenericAPIView):
             # send email function user['email']
             return Response({
                 'message':f'Hi {user["first_name"]} thanks for signing up, a passcode has been sent to your email',
-              }, status.HTTP_201_CREATED)
+            }, status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -690,3 +690,59 @@ class LogoutUserView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+# --- New Code for Fetching User by ID ---
+
+class UserDetailView(RetrieveAPIView):
+    """
+    Retrieve User by ID API
+    
+    Allows an authenticated admin user to retrieve details of a user by their ID.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer # This serializer needs to be defined in serializers.py
+    permission_classes = [IsAuthenticated, IsAdminUser] # Only authenticated admins can access
+
+    @swagger_auto_schema(
+        operation_summary='Retrieve user details by ID',
+        operation_description="""
+        Fetches the details of a specific user given their unique ID.
+        
+        **Permissions:**
+        - User must be authenticated.
+        - User must have admin privileges (`is_staff` or `is_superuser` is typically used for `IsAdminUser`).
+        
+        **URL Parameters:**
+        - id: The integer ID of the user to retrieve.
+        """,
+        responses={
+            200: openapi.Response(
+                description='User details retrieved successfully',
+                schema=UserSerializer # Reference your UserSerializer for the response schema
+            ),
+            401: openapi.Response(
+                description='Authentication required',
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example='Authentication credentials were not provided.')}
+                )
+            ),
+            403: openapi.Response(
+                description='Permission denied',
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example='You do not have permission to perform this action.')}
+                )
+            ),
+            404: openapi.Response(
+                description='User not found',
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example='Not found.')}
+                )
+            )
+        },
+        tags=['Authentication']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)

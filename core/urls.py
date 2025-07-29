@@ -7,6 +7,16 @@ from django.urls import re_path
 from django.conf import settings
 from django.conf.urls.static import static
 
+# --- CUSTOMIZE DJANGO ADMIN SITE ---
+# This changes the main header in the admin interface
+admin.site.site_header = "Event Space Management Admin"
+# This changes the title in the browser tab/window
+admin.site.site_title = "Event Space Admin Portal"
+# This changes the text on the admin index page (after login)
+admin.site.index_title = "Welcome to Event Space Management"
+# --- END ADMIN SITE CUSTOMIZATION ---
+
+
 schema_view = get_schema_view(
     openapi.Info(
         title="eventspace-api",
