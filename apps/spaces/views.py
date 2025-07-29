@@ -8,7 +8,7 @@ from rest_framework.permissions import AllowAny
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .models import Space
-from .serializers import SpaceSerializer
+from .serializers import SpaceSerializer, SpaceDeleteSerializer
 
 class CreateSpaceView(CreateAPIView):
     """
@@ -106,7 +106,33 @@ def space_images(request, pk):
         space = Space.objects.get(pk=pk)
     except Space.DoesNotExist:
         return Response({"error": "Space not found"}, status=status.HTTP_404_NOT_FOUND)
-    
+
+@swagger_auto_schema(
+    method='delete',
+    operation_summary='Delete a space',
+    operation_description='Delete a space by its ID.',
+    responses={
+        204: openapi.Response(description='Space deleted successfully'),
+        404: openapi.Response(description='Space not found')
+    }
+)
+@api_view(['DELETE'])
+@permission_classes([permissions.AllowAny])
+
+def delete_space(request, pk):
+    """
+    Delete a space by its ID.
+    """
+    serializer = SpaceDeleteSerializer(data={"id": pk})
+    if not serializer.is_valid():
+        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        space = Space.objects.get(pk=serializer.validated_data["id"])
+    except Space.DoesNotExist:
+        return Response({"error": "Space not found"}, status=status.HTTP_404_NOT_FOUND)
+    space.delete()
+    return Response({"message": "Space deleted successfully."}, status=status.HTTP_200_OK)
+
 
 
 

@@ -16,3 +16,7 @@ class SpaceSerializer(serializers.ModelSerializer):
         if len(value.strip()) < 2:
             raise serializers.ValidationError("Space name must be at least 2 characters long.")
         return value.strip()
+    
+# Serializer for deleting a space (can be empty, as only the ID is needed)
+class SpaceDeleteSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
