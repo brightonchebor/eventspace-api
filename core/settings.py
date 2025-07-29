@@ -18,7 +18,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 SECRET_KEY = 'django-insecure-tjdd#uw90ekj@!(6aty&e3ref)3vfzs!s1dpjx7b2wf(3dhbnx'
 
 
-DEBUG = env('DEBUG')
+DEBUG = env('DEBUG')('rest_framework_simplejwt.authentication.JWTAuthentication',)
 
 ALLOWED_HOSTS = [
     'eventspace-api-production.up.railway.app',
@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'apps.bookings',
     'apps.spaces',
     'apps.notifications',
-]
+ ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

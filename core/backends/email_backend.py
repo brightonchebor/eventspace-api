@@ -1,9 +1,12 @@
 import ssl
 
+
 from django.core.mail.backends.smtp import EmailBackend as SMTPBackend
 from django.utils.functional import cached_property
 
+# Custom Email Backend to handle SSL certificates
 class EmailBackend(SMTPBackend):
+
     @cached_property
     def ssl_context(self):
         if self.ssl_certfile or self.ssl_keyfile:
