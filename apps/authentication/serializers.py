@@ -9,6 +9,11 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .utils import send_normal_email
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.generics import GenericAPIView
+from rest_framework.response import Response
+from rest_framework import status
+from drf_yasg.utils import swagger_auto_schema 
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -147,4 +152,27 @@ class LogoutUsererializer(serializers.Serializer):
             token = RefreshToken(self.token)
             token.blacklist()
         except TokenError:
-            return self.fail('bad_token')                          
+            return self.fail('bad_token')      
+
+class DeleteAllUsersSerializer(serializers.Serializer):
+    confirmation = serializers.BooleanField()
+
+    def validate_confirmation(self, value):
+        if not value:
+            raise serializers.ValidationError("You must confirm to delete all users.")
+        return value
+
+    def delete_all_users(self):
+        User.objects.all().delete()
+        return {"message": "All users have been deleted successfully."}
+class DeleteAllUsersView(GenericAPIView):
+    serializer_class = DeleteAllUsersSerializer
+    permission_classes = [IsAdminUser]
+
+    @swagger_auto_schema(operation_summary='Delete all users (admin only).')
+    def delete(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.delete_all_users()
+        return Response({'message': 'All users deleted.'}, status=status.HTTP_204_NO_CONTENT)
+                  

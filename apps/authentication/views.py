@@ -7,6 +7,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .utils import send_code_to_user
 from .models import OneTimePassword, User
+from rest_framework.permissions import IsAdminUser
 
 
 from rest_framework.permissions import IsAuthenticated
@@ -146,4 +147,12 @@ class LogoutUserView(GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)        
+        return Response(status=status.HTTP_204_NO_CONTENT) 
+         
+class DeleteAllUsersView(GenericAPIView):
+    permission_classes = [IsAdminUser]
+
+    @swagger_auto_schema(operation_summary='Delete all users (admin only).')
+    def delete(self, request):
+        User.objects.all().delete()
+        return Response({'message': 'All users deleted.'}, status=status.HTTP_204_NO_CONTENT)  
