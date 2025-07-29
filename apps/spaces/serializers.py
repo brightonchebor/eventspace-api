@@ -4,8 +4,7 @@ from .models import Space
 class SpaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Space
-        fields = ['id', 'name', 'location', 'capacity', 'image1', 'image2', 'image3', 'image4', 'image5', 'status', 
-                 'description', 'equipment', 'features', 'price_per_hour', 'created_at', 'updated_at']
+        fields = '__all__'
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def validate_capacity(self, value):

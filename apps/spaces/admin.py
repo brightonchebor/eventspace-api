@@ -4,7 +4,7 @@ from .models import Space
 
 @admin.register(Space)
 class SpaceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'location', 'capacity', 'status', 'created_at']
+    list_display = ['name', 'location', 'capacity', 'status', 'created_at', 'price_per_hour']
     list_filter = ['status', 'created_at', 'capacity']
     search_fields = ['name', 'location', 'description']
     list_editable = ['status']
@@ -13,7 +13,7 @@ class SpaceAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'location', 'capacity', 'status')
+            'fields': ('name', 'location', 'capacity', 'status', 'price_per_hour')
         }),
         ('Images', {
             'fields': ('image1', 'image2', 'image3', 'image4', 'image5'),

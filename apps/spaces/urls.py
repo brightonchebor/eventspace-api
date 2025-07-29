@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import CreateSpaceView, ListSpacesView
+from .views import list_spaces, space_detail
 
 urlpatterns = [
-    path('', ListSpacesView.as_view(), name='list-spaces'),
-    path('create/', CreateSpaceView.as_view(), name='create-space'),
+    path('', list_spaces, name='list-spaces'),
+    path('<int:pk>/', space_detail, name='space-detail'),
 ]

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject }}</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+        }
+        .email-header {
+            background-color: #000000;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        .email-logo {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        .email-body {
+            padding: 30px;
+            color: #333333;
+        }
+        .email-footer {
+            background-color: #f2f2f2;
+            padding: 15px 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+        }
+        h1 {
+            color: #000000;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        p {
+            margin-bottom: 15px;
+            color: #333333;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 15px 0;
+            background-color: #000000;
+            color: #ffffff !important;
+            text-decoration: none;
+            font-weight: 500;
+            border-radius: 3px;
+        }
+        .event-details {
+            background-color: #f8f8f8;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 3px solid #000000;
+        }
+        .image-container {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #e0e0e0;
+        }
+        .highlight {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h2 class="email-logo">SmartSpace</h2>
+        </div>
+        
+        <div class="email-body">
+            {% block content %}
+            {% endblock %}
+        </div>
+        
+        <div class="email-footer">
+            <p>&copy; {% now "Y" %} SmartSpace. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

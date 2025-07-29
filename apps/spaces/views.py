@@ -1,7 +1,10 @@
 from django.shortcuts import render
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework import permissions
+from rest_framework.permissions import AllowAny
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .models import Space
@@ -60,22 +63,50 @@ class CreateSpaceView(CreateAPIView):
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
-class ListSpacesView(ListAPIView):
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_spaces(request):
     """
-    List all spaces
+    List all available spaces
     """
-    serializer_class = SpaceSerializer
-    queryset = Space.objects.all()
+    spaces = Space.objects.all()
+    serializer = SpaceSerializer(spaces, many=True)
+    return Response(serializer.data)
 
-    @swagger_auto_schema(
-        operation_summary='List all spaces',
-        operation_description='Get a list of all available event spaces',
-        responses={
-            200: openapi.Response(
-                description='List of spaces retrieved successfully',
-                schema=SpaceSerializer(many=True)
-            )
-        }
-    )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+@swagger_auto_schema(
+    method='get',
+    operation_description="Retrieve details of a space by its ID.",
+    responses={200: SpaceSerializer(), 404: 'Not Found'}
+)
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def space_detail(request, pk):
+    """
+    Retrieve details of a space by its ID.
+    """
+    try:
+        space = Space.objects.get(pk=pk)
+    except Space.DoesNotExist:
+        return Response({"error": "Space not found"}, status=status.HTTP_404_NOT_FOUND)
+    serializer = SpaceSerializer(space)
+    return Response(serializer.data)
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Retrieve images for a specific space by ID.",
+    responses={200: 'List of space images', 404: 'Not Found'}
+)
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def space_images(request, pk):
+    """
+    Retrieve images for a specific space by ID.
+    """
+    try:
+        space = Space.objects.get(pk=pk)
+    except Space.DoesNotExist:
+        return Response({"error": "Space not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+
+
+
