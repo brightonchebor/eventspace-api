@@ -97,3 +97,45 @@ class BookingSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("This space is already booked during the selected time period")
             
         return data
+
+class EventUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = [
+            'id',
+            'event_name', 
+            'start_datetime', 
+            'end_datetime', 
+            'organizer_name', 
+            'organizer_email', 
+            'event_type', 
+            'attendance',
+        ]
+        read_only_fields = ['id']
+
+    def validate(self, data):
+        start_datetime = data.get('start_datetime', self.instance.start_datetime if self.instance else None)
+        end_datetime = data.get('end_datetime', self.instance.end_datetime if self.instance else None)
+
+        if start_datetime and end_datetime:
+            if start_datetime >= end_datetime:
+                raise serializers.ValidationError("End datetime must be after start datetime")
+        
+        # Additional validation to prevent updating past events
+        if self.instance and start_datetime:
+            from django.utils import timezone
+            if start_datetime < timezone.now() and self.instance.start_datetime != start_datetime:
+                raise serializers.ValidationError("Cannot update event start time to a past date")
+
+        return data
+
+    def update(self, instance, validated_data):
+        """
+        Custom update method to handle event updates by ID
+        """
+        # Update all provided fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        instance.save()
+        return instance

@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView ,UpdateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,7 +15,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 
 from .models import Event, Booking
-from .serializers import EventSerializer, EventListSerializer, BookingSerializer
+from .serializers import EventSerializer, EventListSerializer, BookingSerializer ,EventUpdateSerializer
 from .tasks import update_space_on_approval
 from apps.spaces.models import Space
 
@@ -399,3 +399,11 @@ class BookingViewSet(viewsets.ModelViewSet):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class EventUpdateView(UpdateAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventUpdateSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
