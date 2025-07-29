@@ -1,0 +1,23 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h1>Booking Approval Needed</h1>
+
+<p>Hello Admin,</p>
+
+<p>A new booking for event <span class="highlight">'{{ event.event_name }}'</span> by {{ user_name }} is awaiting your approval.</p>
+
+<div class="event-details">
+    <p><strong>Event Details:</strong></p>
+    <p>Event: {{ event.event_name }}</p>
+    <p>Organized by: {{ organizer_name }}</p>
+    <p>Date: {{ event.start_datetime|date:"F j, Y" }}</p>
+    <p>Time: {{ event.start_datetime|time:"g:i A" }} - {{ event.end_datetime|time:"g:i A" }}</p>
+    <p>Spaces booked: {{ spaces }}</p>
+</div>
+
+<p>Please review and approve or reject this booking request at your earliest convenience.</p>
+
+<p>Regards,<br>
+SmartSpace Team</p>
+{% endblock %}

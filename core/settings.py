@@ -12,54 +12,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 environ.Env.read_env(BASE_DIR / '.env')
 
+
+
+
 SECRET_KEY = 'django-insecure-tjdd#uw90ekj@!(6aty&e3ref)3vfzs!s1dpjx7b2wf(3dhbnx'
+
 
 DEBUG = env('DEBUG')
 
-# PRODUCTION-SAFE SETTINGS
 ALLOWED_HOSTS = [
     'eventspace-api-production.up.railway.app',
-    'https://smart-space-kappa.vercel.app',
-    'smart-space-kappa.vercel.app',
+    'https://eventspace-api-production.up.railway.app',
     'localhost',
     '127.0.0.1',
+    '10.0.6.34',
 ]
-
 CSRF_TRUSTED_ORIGINS = [
     'https://eventspace-api-production.up.railway.app',
-    'https://smart-space-kappa.vercel.app',
+    'http://localhost:8000',
+    'http://10.0.6.34',
+    'http://127.0.0.1',
 ]
-
-# CORS Settings - PRODUCTION SAFE
-CORS_ALLOW_ALL_ORIGINS = True
-
-CORS_ALLOW_CREDENTIALS = True
-
-# Additional CORS settings for maximum compatibility
-CORS_ALLOWED_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-    'access-control-allow-origin',
-]
-
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
-
-# For debugging - this will log CORS requests
-CORS_PREFLIGHT_MAX_AGE = 86400
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -74,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'whitenoise.runserver_nostatic',
     'django_celery_beat',
+    'corsheaders',  # Add this line
 
     'apps.authentication',
     'apps.bookings',
@@ -82,9 +56,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    'corsheaders.middleware.CorsMiddleware',  # Add this line
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -98,7 +72,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'core', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -112,7 +86,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
+
+
 if DEBUG:
+    # Local development: use SQLite
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -120,6 +97,7 @@ if DEBUG:
         }
     }
 else:
+    # Production: use PostgreSQL
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -130,6 +108,7 @@ else:
             "PORT": env("PG_PORT", default="21962"),
         }
     }
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -145,12 +124,20 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+
 LANGUAGE_CODE = 'en-us'
+
 TIME_ZONE = 'Africa/Nairobi'
+
 USE_I18N = True
+
 USE_TZ = True
 
+
 STATIC_URL = 'static/'
+
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # whitenoise
@@ -158,15 +145,19 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
 AUTH_USER_MODEL = 'authentication.User'
 
 REST_FRAMEWORK = {
+   
     'DEFAULT_AUTHENTICATION_CLASSES': (
+       
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
     ),
+    
 }
 
 SIMPLE_JWT = {
@@ -201,17 +192,9 @@ SWAGGER_SETTINGS = {
     'SWAGGER_UI_PARAMETERS': {
         'defaultModelsExpandDepth': -1,
         'docExpansion': 'none',
-        'models': {},
+        'models': {},  # Empty models object
         'showModels': False,
         'displayModels': False,
-    },
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'in': 'header',
-            'name': 'Authorization',
-            'description': 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer <your_token>"',
-        }
     },
     'USE_SESSION_AUTH': False,
     'JSON_EDITOR': True,
@@ -258,3 +241,21 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
+
+CORS_ALLOW_ALL_ORIGINS = True  # Only for development
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://10.0.6.34:5173",
+]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://\w+\.localhost:5173$",
+]
+
+# Media files (uploaded by users)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Site URL for absolute URLs in emails
+# In production, set this to the actual domain
+SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000')
