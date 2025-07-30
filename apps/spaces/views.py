@@ -16,11 +16,32 @@ class CreateSpaceView(CreateAPIView):
     """
     serializer_class = SpaceSerializer
     queryset = Space.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(organizer=self.request.user)
 
     @swagger_auto_schema(
         operation_summary='Create a new space',
-        operation_description='Create a new event space with the provided details',
-        request_body=SpaceSerializer,
+        operation_description='Create a new event space with the provided details. Requires authentication.',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['name', 'location', 'capacity', 'price_per_hour'],
+            properties={
+                'name': openapi.Schema(type=openapi.TYPE_STRING, description='Name of the space'),
+                'location': openapi.Schema(type=openapi.TYPE_STRING, description='Location of the space'),
+                'capacity': openapi.Schema(type=openapi.TYPE_INTEGER, description='Maximum capacity of the space'),
+                'description': openapi.Schema(type=openapi.TYPE_STRING, description='Detailed description of the space'),
+                'equipment': openapi.Schema(type=openapi.TYPE_STRING, description='Available equipment in the space'),
+                'features': openapi.Schema(type=openapi.TYPE_STRING, description='Special features of the space'),
+                'price_per_hour': openapi.Schema(type=openapi.TYPE_NUMBER, description='Price per hour for the space'),
+                'image1': openapi.Schema(type=openapi.TYPE_FILE, description='Primary image of the space'),
+                'image2': openapi.Schema(type=openapi.TYPE_FILE, description='Additional image of the space'),
+                'image3': openapi.Schema(type=openapi.TYPE_FILE, description='Additional image of the space'),
+                'image4': openapi.Schema(type=openapi.TYPE_FILE, description='Additional image of the space'),
+                'image5': openapi.Schema(type=openapi.TYPE_FILE, description='Additional image of the space')
+            }
+        ),
         responses={
             201: openapi.Response(
                 description='Space created successfully',
