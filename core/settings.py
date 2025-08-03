@@ -110,11 +110,11 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("PG_NAME"),
-            "USER": env("PG_USER", default="postgres"),
-            "PASSWORD": env("PG_PWD"),
-            "HOST": env("PG_HOST", default="tramway.proxy.rlwy.net"),
-            "PORT": env("PG_PORT", default="21962"),
+            "NAME": env("PGDATABASE"),
+            "USER": env("PGUSER"),
+            "PASSWORD": env("PGPASSWORD"),
+            "HOST": env("PGHOST"),
+            "PORT": env("PGPORT"),
         }
     }
 
