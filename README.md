@@ -45,4 +45,28 @@ eventspace-api/
 │   └── notifications/
 ├── core/
 ├── manage.py
+├── Procfile
 └── requirements.txt
+```
+
+## 🚂 Railway Deployment
+
+This application is configured for automatic deployment on Railway.app platform.
+
+### Automatic Migrations
+
+When deployed on Railway, the application automatically handles database migrations:
+
+1. Migrations are applied when the app starts up via the `wsgi.py` file
+2. The Procfile ensures migrations run before the application server starts
+3. No manual `python manage.py migrate` commands are needed on Railway
+
+To deploy to Railway:
+
+1. Connect your repository to Railway
+2. Add PostgreSQL plugin
+3. Set the following environment variables:
+   - `RAILWAY_ENVIRONMENT=production`
+   - `DEBUG=False`
+   - Other required environment variables from `.env`
+4. Deploy the application

@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'apps.bookings',
     'apps.spaces',
     'apps.notifications',
+    'apps.core',
 ]
 
 MIDDLEWARE = [
@@ -269,4 +270,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Site URL for absolute URLs in emails
 # In production, set this to the actual domain
+
+# Railway detection
+RAILWAY_ENVIRONMENT = os.environ.get('RAILWAY_ENVIRONMENT', False)
 SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000')
