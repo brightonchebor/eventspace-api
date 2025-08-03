@@ -218,11 +218,26 @@ SWAGGER_SETTINGS = {
 
 JAZZMIN_SETTINGS = {
     "site_title": "Event Management System",
+    "site_header": "Event Management System",
+    "site_brand": "EventSpace",
+    "site_logo": None,
+    "login_logo": None,
+    "login_logo_dark": None,
+    "site_logo_classes": "img-circle",
+    "site_icon": None,
+    "welcome_sign": "Welcome to the EventSpace Admin",
+    "copyright": "EventSpace Ltd",
     "topmenu_links": [
         {"app": "bookings"},
     ],
     "show_ui_builder": False,
-
+    "related_modal_active": True,
+    "custom_css": None,
+    "custom_js": None,
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
 }
 JAZZMIN_UI_TWEAKS = {
     "navbar_small_text": False,
@@ -244,11 +259,12 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_compact_style": True,
     "sidebar_nav_legacy_style": True,
     "sidebar_nav_flat_style": True,
-    "theme": "yeti",
+    # Use 'flatly' instead of 'yeti' or 'default'
+    "theme": "flatly",
     "dark_mode_theme": None,
     "button_classes": {
-        "primary": "btn-outline-primary",
-        "secondary": "btn-outline-secondary",
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
         "info": "btn-info",
         "warning": "btn-warning",
         "danger": "btn-danger",
@@ -278,3 +294,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Railway detection
 RAILWAY_ENVIRONMENT = os.environ.get('RAILWAY_ENVIRONMENT', False)
 SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000')
+
+# Special handling for Jazzmin in Railway environment
+if os.environ.get('RAILWAY_ENVIRONMENT'):
+    # Use simpler Jazzmin settings for Railway
+    JAZZMIN_UI_TWEAKS = {
+        "theme": None,
+        "dark_mode_theme": None,
+    }
