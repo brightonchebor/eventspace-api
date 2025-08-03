@@ -9,6 +9,14 @@ from .settings import *
 RAILWAY_ENVIRONMENT = True
 DEBUG = False
 
+# Remove Jazzmin from INSTALLED_APPS to fix admin interface issues
+if 'jazzmin' in INSTALLED_APPS:
+    INSTALLED_APPS.remove('jazzmin')
+
+# Reset Jazzmin settings to avoid theme errors
+JAZZMIN_SETTINGS = {}
+JAZZMIN_UI_TWEAKS = {}
+
 # Database connection uses Railway-provided PostgreSQL credentials
 DATABASES = {
     "default": {

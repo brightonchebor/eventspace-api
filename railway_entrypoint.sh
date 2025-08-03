@@ -4,7 +4,7 @@
 echo "Starting Railway deployment process..."
 
 # Set Django settings to Railway-specific module
-export DJANGO_SETTINGS_MODULE=core.railway_settings
+export DJANGO_SETTINGS_MODULE=core.railway
 export RAILWAY_ENVIRONMENT=production
 
 # Ensure migration directories exist

@@ -295,10 +295,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 RAILWAY_ENVIRONMENT = os.environ.get('RAILWAY_ENVIRONMENT', False)
 SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000')
 
-# Special handling for Jazzmin in Railway environment
+# Special handling for Railway environment
 if os.environ.get('RAILWAY_ENVIRONMENT'):
-    # Use simpler Jazzmin settings for Railway
-    JAZZMIN_UI_TWEAKS = {
-        "theme": None,
-        "dark_mode_theme": None,
-    }
+    # Completely remove Jazzmin from installed apps when on Railway
+    # This prevents theme-related errors
+    if 'jazzmin' in INSTALLED_APPS:
+        INSTALLED_APPS.remove('jazzmin')
+    
+    # Use Django's default admin interface instead
+    # This ensures the admin will work without any theme dependencies
+    JAZZMIN_SETTINGS = {}
+    JAZZMIN_UI_TWEAKS = {}
