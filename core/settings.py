@@ -28,17 +28,19 @@ ALLOWED_HOSTS = [
     '10.0.6.34',
     '10.21.0.64',
     '192.168.100.150',
-    '10.0.5.238'
+    '10.0.5.238',
+    'eventspace-api-production.up.railway.app'
 ]
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
-    'https://smart-space-kappa.vercel.app/',
+    'https://smart-space-kappa.vercel.app',
     'http://0.0.0.0',
     'http://10.0.6.34',
     'http://127.0.0.1',
     'http://192.168.100.150',
     'http://10.0.5.238',
     'http://10.21.0.64',
+    'https://eventspace-api-production.up.railway.app',
 ]
 
 INSTALLED_APPS = [
@@ -259,6 +261,8 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://10.0.6.34:5173",
+    "https://smart-space-kappa.vercel.app",
+    "https://eventspace-api-production.up.railway.app",
 ]
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://\w+\.localhost:5173$",
