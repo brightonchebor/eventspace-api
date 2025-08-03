@@ -11,8 +11,15 @@
     <p><strong>Event Details:</strong></p>
     <p>Event: {{ event_name }}</p>
     <p>Space: {{ space_name }}</p>
-    <p>Date: {{ start_datetime|date:"F j, Y" }}</p>
-    <p>Time: {{ start_datetime|time:"g:i A" }} - {{ end_datetime|time:"g:i A" }}</p>
+    {% if is_full_day %}
+    <p>Start Date: {{ start_datetime }}</p>
+    <p>End Date: {{ end_datetime }}</p>
+    <p>Booking Type: Full Day</p>
+    {% else %}
+    <p>Date and Time:</p>
+    <p>From: {{ start_datetime }}</p>
+    <p>To: {{ end_datetime }}</p>
+    {% endif %}
     <p>Status: <span class="highlight">Pending Approval</span></p>
 </div>
 

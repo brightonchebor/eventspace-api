@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 # Create your models here.
 class Space(models.Model):
@@ -26,7 +27,7 @@ class Space(models.Model):
     description = models.TextField(blank=True, null=True)
     equipment = models.TextField(blank=True, null=True)
     features = models.TextField(blank=True, null=True)
-    price_per_hour = models.DecimalField(max_digits=10, decimal_places=2)
+    price_per_day = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     organizer = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
@@ -36,3 +37,30 @@ class Space(models.Model):
     def __str__(self):
         return self.name
 
+
+class Review(models.Model):
+    RATING_CHOICES = [(1, '1 Star'), (2, '2 Stars'), (3, '3 Stars'), (4, '4 Stars'), (5, '5 Stars')]
+    
+    space = models.ForeignKey(Space, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='reviews'
+    )
+    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        # Ensure one review per user per space
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'space'], 
+                name='unique_user_space_review'
+            )
+        ]
+    
+    def __str__(self):
+        return f"Review for {self.space.name} by {self.user.email}"

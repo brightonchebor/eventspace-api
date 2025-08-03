@@ -25,13 +25,21 @@ ALLOWED_HOSTS = [
     'https://eventspace-api-production.up.railway.app',
     'localhost',
     '127.0.0.1',
+    '0.0.0.0',
     '10.0.6.34',
+    '10.21.0.64',
+    '192.168.100.150',
+    '10.0.5.238'
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://eventspace-api-production.up.railway.app',
     'http://localhost:8000',
+    'http://0.0.0.0',
     'http://10.0.6.34',
     'http://127.0.0.1',
+    'http://192.168.100.150',
+    'http://10.0.5.238',
+    'http://10.21.0.64',
 ]
 
 INSTALLED_APPS = [
@@ -76,10 +84,12 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'debug': True,  # Enable template debugging
         },
     },
 ]
@@ -174,6 +184,8 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+# Admin email for notifications
+ADMIN_EMAIL = env('ADMIN_EMAIL', default='admin@example.com')
 
 # Add this line to your settings file if it's not already there
 AUTH_USER_MODEL = 'authentication.User'
