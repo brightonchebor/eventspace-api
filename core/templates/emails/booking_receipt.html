@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>
+      {% if status == "PENDING APPROVAL" %}
+        Booking Receipt (Pending) for {{ event_name }}
+      {% else %}
+        Payment Receipt for {{ event_name }}
+      {% endif %}
+    </title>
+</head>
+<body>
+<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        {% if status == "PENDING APPROVAL" %}
+            <h2 style="color: #FF9800;">Booking Receipt (Pending)</h2>
+            <p style="color: #888888; font-size: 14px;">Your booking is awaiting approval</p>
+        {% else %}
+            <h2 style="color: #4CAF50;">Payment Receipt</h2>
+            <p style="color: #888888; font-size: 14px;">Thank you for your booking</p>
+        {% endif %}
+    </div>
+
+    {% if status == "PENDING APPROVAL" %}
+    <div style="text-align: center; background-color: #FFF3E0; border-radius: 6px; padding: 10px; margin-bottom: 20px;">
+        <p style="margin: 0; color: #E65100; font-weight: 500;">This booking is pending approval. You will receive a final receipt once approved.</p>
+    </div>
+    {% endif %}
+
+    <div style="border-bottom: 1px solid #e0e0e0; padding-bottom: 20px; margin-bottom: 20px;">
+        <h3 style="color: #333333; margin-bottom: 15px;">Event Details</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="padding: 8px 0; color: #666666; width: 40%;">Event Name:</td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ event_name }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">Space:</td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ space_name }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">Location:</td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ space_location }}</td>
+            </tr>
+            {% if is_full_day %}
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">Duration:</td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ start_datetime }} to {{ end_datetime }} (Full day)</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">Date & Time:</td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ start_datetime }} to {{ end_datetime }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">Organizer:</td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ organizer_name }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="border-bottom: 1px solid #e0e0e0; padding-bottom: 20px; margin-bottom: 20px;">
+        <h3 style="color: #333333; margin-bottom: 15px;">
+            {% if status == "PENDING APPROVAL" %}
+                Booking Details
+            {% else %}
+                Payment Details
+            {% endif %}
+        </h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="padding: 8px 0; color: #666666; width: 40%;">
+                    {% if status == "PENDING APPROVAL" %}
+                        Estimated Amount:
+                    {% else %}
+                        Amount Paid:
+                    {% endif %}
+                </td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ amount_paid }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">
+                    {% if status == "PENDING APPROVAL" %}
+                        Booking Date:
+                    {% else %}
+                        Payment Date:
+                    {% endif %}
+                </td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ payment_date }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">
+                    {% if status == "PENDING APPROVAL" %}
+                        Reference ID:
+                    {% else %}
+                        Transaction ID:
+                    {% endif %}
+                </td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ transaction_id }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">
+                    {% if status == "PENDING APPROVAL" %}
+                        Status:
+                    {% else %}
+                        Payment Method:
+                    {% endif %}
+                </td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">
+                    {% if status == "PENDING APPROVAL" %}
+                        <span style="color: #FF9800;">{{ status }}</span>
+                    {% else %}
+                        {{ payment_method }}
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="text-align: center; background-color: #f7f7f7; border-radius: 6px; padding: 15px; margin-top: 20px;">
+        <p style="margin: 0; color: #333333; font-weight: 500;">
+            {% if status == "PENDING APPROVAL" %}
+                Estimated Total: <span style="color: #FF9800; font-size: 18px;">{{ amount_paid }}</span>
+            {% else %}
+                Total Amount Paid: <span style="color: #4CAF50; font-size: 18px;">{{ amount_paid }}</span>
+            {% endif %}
+        </p>
+    </div>
+
+    <div style="margin-top: 30px; text-align: center;">
+        <p style="color: #888888; font-size: 14px;">This is an automatically generated receipt.</p>
+        <p style="color: #888888; font-size: 14px;">Thank you for using our service!</p>
+    </div>
+</div>
+</body>
+</html>

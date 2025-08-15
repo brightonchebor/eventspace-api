@@ -1,23 +1,53 @@
 {% extends "emails/base_email.html" %}
 
+{% block title %}New Booking Request - {{ event_name }}{% endblock %}
+
 {% block content %}
-<h1>Booking Pending Approval</h1>
+<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: #FF9800;">New Booking Request</h2>
+        <p style="color: #888888; font-size: 14px;">A new booking requires your attention</p>
+    </div>
+    
+    <div style="background-color: #FFF3E0; border-radius: 6px; padding: 15px; margin-bottom: 20px; text-align: center;">
+        <p style="margin: 0; color: #E65100; font-weight: 500;">This booking is pending approval</p>
+    </div>
 
-<p>Dear {{ organizer_name }},</p>
+    <div style="border-bottom: 1px solid #e0e0e0; padding-bottom: 20px; margin-bottom: 20px;">
+        <h3 style="color: #333333; margin-bottom: 15px;">Event Details</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="padding: 8px 0; color: #666666; width: 40%;">Event Name:</td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ event_name }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">Space:</td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ space_name }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">Requested By:</td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ user_name }} ({{ user_email }})</td>
+            </tr>
+            {% if is_full_day %}
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">Duration:</td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ start_datetime }} to {{ end_datetime }} (Full day)</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td style="padding: 8px 0; color: #666666;">Date & Time:</td>
+                <td style="padding: 8px 0; color: #333333; font-weight: 500;">{{ start_datetime }} to {{ end_datetime }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
 
-<p>A new booking for event <span class="highlight">'{{ event.event_name }}'</span> has been made by {{ user_name }}.</p>
+    <div style="text-align: center; margin-top: 20px;">
+        <p>You'll be notified once the booking has been reviewed by admin.</p>
+    </div>
 
-<div class="event-details">
-    <p><strong>Event Details:</strong></p>
-    <p>Event: {{ event.event_name }}</p>
-    <p>Date: {{ event.start_datetime|date:"F j, Y" }}</p>
-    <p>Time: {{ event.start_datetime|time:"g:i A" }} - {{ event.end_datetime|time:"g:i A" }}</p>
-    <p>Spaces booked: {{ spaces }}</p>
-    <p>Status: <span class="highlight">Pending approval from admin</span></p>
+    <div style="margin-top: 30px; text-align: center; color: #888888; font-size: 14px;">
+        <p>Regards,<br>EventSpace Team</p>
+    </div>
 </div>
-
-<p>You'll be notified once the booking has been reviewed.</p>
-
-<p>Regards,<br>
-SmartSpace Team</p>
 {% endblock %}

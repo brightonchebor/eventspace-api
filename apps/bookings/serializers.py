@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils import timezone
 from .models import Event
 from apps.spaces.models import Space
 from apps.spaces.serializers import SpaceSerializer
@@ -9,7 +10,8 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = [
-            'id', 'event_name', 'start_datetime', 'end_datetime',
+            'id', 'event_name', 'start_datetime', 'end_datetime', 
+            'start_date', 'end_date', 'is_full_day',
             'organizer_name', 'organizer_email', 'event_type', 
             'attendance', 'status', 'space', 'space_name'
         ]
@@ -19,14 +21,45 @@ class EventSerializer(serializers.ModelSerializer):
         """
         Validate the event data
         """
-        start_datetime = data.get('start_datetime')
-        end_datetime = data.get('end_datetime')
+        is_full_day = data.get('is_full_day', False)
+        
+        if is_full_day:
+            # Validate multi-day booking
+            start_date = data.get('start_date')
+            end_date = data.get('end_date')
+            
+            if not start_date or not end_date:
+                raise serializers.ValidationError(
+                    "Start date and end date are required for full-day bookings"
+                )
+                
+            if start_date > end_date:
+                raise serializers.ValidationError(
+                    "End date must be after or equal to start date"
+                )
+                
+            if start_date < timezone.now().date():
+                raise serializers.ValidationError(
+                    "Start date cannot be in the past"
+                )
+        else:
+            # Validate standard time frame booking
+            start_datetime = data.get('start_datetime')
+            end_datetime = data.get('end_datetime')
+            
+            if not start_datetime or not end_datetime:
+                raise serializers.ValidationError(
+                    "Start datetime and end datetime are required for time-specific bookings"
+                )
 
-        # Validate datetime
-        if start_datetime and end_datetime:
             if start_datetime >= end_datetime:
                 raise serializers.ValidationError(
                     "End datetime must be after start datetime"
+                )
+                
+            if start_datetime < timezone.now():
+                raise serializers.ValidationError(
+                    "Start datetime cannot be in the past"
                 )
 
         return data
@@ -37,7 +70,8 @@ class EventListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = [
-            'id', 'event_name', 'start_datetime', 'end_datetime',
+            'id', 'event_name', 'start_datetime', 'end_datetime', 
+            'start_date', 'end_date', 'is_full_day',
             'status', 'space_name'
         ]
 
@@ -55,6 +89,9 @@ class BookingSerializer(serializers.ModelSerializer):
             'event_name',
             'start_datetime', 
             'end_datetime',
+            'start_date',
+            'end_date',
+            'is_full_day',
             'organizer_name', 
             'organizer_email',
             'event_type',

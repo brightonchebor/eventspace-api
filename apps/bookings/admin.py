@@ -12,7 +12,13 @@ STATUS_CANCELLED = 'cancelled'
 STATUS_COMPLETED = 'completed'
 STATUS_REJECTED = 'rejected'
 
+
 class EventStatusFilter(admin.SimpleListFilter):
+    """
+    Custom filter for the Django admin to filter events by their status.
+    Provides options for pending, confirmed, upcoming, completed, cancelled, and rejected events.
+    This filter appears in the admin list view for the Event model, allowing quick filtering by event status.
+    """
     title = 'Event Status'
     parameter_name = 'event_status'
 
@@ -69,9 +75,9 @@ class EventStatusFilter(admin.SimpleListFilter):
 class EventAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'status_with_badge', 'space', 'event_type',
                    'formatted_start_time', 'formatted_end_time', 
-                   'organizer_name', 'time_until_event')
+                   'organizer_name', 'time_until_event', 'is_full_day')
     list_display_links = ('event_name',)
-    list_filter = (EventStatusFilter, 'event_type', 'space')
+    list_filter = (EventStatusFilter, 'event_type', 'space', 'is_full_day')
     search_fields = ('event_name', 'organizer_name', 'organizer_email')
     list_per_page = 20
     date_hierarchy = 'start_datetime'
@@ -88,18 +94,34 @@ class EventAdmin(admin.ModelAdmin):
     def time_until_event(self, obj):
         """Shows the time remaining until the event starts"""
         now = timezone.now()
-        if obj.start_datetime > now:
-            time_diff = obj.start_datetime - now
-            days = time_diff.days
-            hours = time_diff.seconds // 3600
-            if days > 0:
-                return f'In {days}d {hours}h'
-            elif hours > 0:
-                return f'In {hours}h'
+        today = now.date()
+        
+        if obj.is_full_day:
+            # For multi-day bookings
+            if obj.start_date > today:
+                days = (obj.start_date - today).days
+                return f'In {days}d'
+            elif obj.end_date < today:
+                return 'Past event'
             else:
-                minutes = time_diff.seconds // 60
-                return f'In {minutes}m'
-        return 'Past event'
+                return 'In progress'
+        else:
+            # For standard time frame bookings
+            if obj.start_datetime > now:
+                time_diff = obj.start_datetime - now
+                days = time_diff.days
+                hours = time_diff.seconds // 3600
+                if days > 0:
+                    return f'In {days}d {hours}h'
+                elif hours > 0:
+                    return f'In {hours}h'
+                else:
+                    minutes = time_diff.seconds // 60
+                    return f'In {minutes}m'
+            elif obj.end_datetime < now:
+                return 'Past event'
+            else:
+                return 'In progress'
     time_until_event.short_description = 'Time Left'
 
     def status_with_badge(self, obj):
@@ -141,12 +163,18 @@ class EventAdmin(admin.ModelAdmin):
     status_with_badge.admin_order_field = 'status'
 
     def formatted_start_time(self, obj):
-        return obj.start_datetime.strftime("%b %d, %Y %H:%M")
+        if obj.is_full_day:
+            return obj.start_date.strftime("%b %d, %Y") + " (All day)"
+        else:
+            return obj.start_datetime.strftime("%b %d, %Y %H:%M")
     formatted_start_time.short_description = 'Starts'
     formatted_start_time.admin_order_field = 'start_datetime'
 
     def formatted_end_time(self, obj):
-        return obj.end_datetime.strftime("%b %d, %Y %H:%M")
+        if obj.is_full_day:
+            return obj.end_date.strftime("%b %d, %Y") + " (All day)"
+        else:
+            return obj.end_datetime.strftime("%b %d, %Y %H:%M")
     formatted_end_time.short_description = 'Ends'
     formatted_end_time.admin_order_field = 'end_datetime'
 

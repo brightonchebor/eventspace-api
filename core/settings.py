@@ -21,17 +21,26 @@ SECRET_KEY = 'django-insecure-tjdd#uw90ekj@!(6aty&e3ref)3vfzs!s1dpjx7b2wf(3dhbnx
 DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = [
-    'eventspace-api-production.up.railway.app',
-    'https://eventspace-api-production.up.railway.app',
     'localhost',
+    'smart-space-kappa.vercel.app',
     '127.0.0.1',
+    '0.0.0.0',
     '10.0.6.34',
+    '10.21.0.64',
+    '192.168.100.150',
+    '10.0.5.238',
+    'eventspace-api-production.up.railway.app'
 ]
 CSRF_TRUSTED_ORIGINS = [
-    'https://eventspace-api-production.up.railway.app',
     'http://localhost:8000',
+    'https://smart-space-kappa.vercel.app',
+    'http://0.0.0.0',
     'http://10.0.6.34',
     'http://127.0.0.1',
+    'http://192.168.100.150',
+    'http://10.0.5.238',
+    'http://10.21.0.64',
+    'https://eventspace-api-production.up.railway.app',
 ]
 
 INSTALLED_APPS = [
@@ -53,6 +62,7 @@ INSTALLED_APPS = [
     'apps.bookings',
     'apps.spaces',
     'apps.notifications',
+    'apps.core',
 ]
 
 MIDDLEWARE = [
@@ -76,10 +86,12 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'debug': True,  # Enable template debugging
         },
     },
 ]
@@ -101,11 +113,11 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("PG_NAME"),
-            "USER": env("PG_USER", default="postgres"),
-            "PASSWORD": env("PG_PWD"),
-            "HOST": env("PG_HOST", default="tramway.proxy.rlwy.net"),
-            "PORT": env("PG_PORT", default="21962"),
+            "NAME": env("PGDATABASE"),
+            "USER": env("PGUSER"),
+            "PASSWORD": env("PGPASSWORD"),
+            "HOST": env("PGHOST"),
+            "PORT": env("PGPORT"),
         }
     }
 
@@ -174,6 +186,8 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+# Admin email for notifications
+ADMIN_EMAIL = env('ADMIN_EMAIL', default='admin@example.com')
 
 # Add this line to your settings file if it's not already there
 AUTH_USER_MODEL = 'authentication.User'
@@ -204,11 +218,26 @@ SWAGGER_SETTINGS = {
 
 JAZZMIN_SETTINGS = {
     "site_title": "Event Management System",
+    "site_header": "Event Management System",
+    "site_brand": "EventSpace",
+    "site_logo": None,
+    "login_logo": None,
+    "login_logo_dark": None,
+    "site_logo_classes": "img-circle",
+    "site_icon": None,
+    "welcome_sign": "Welcome to the EventSpace Admin",
+    "copyright": "EventSpace Ltd",
     "topmenu_links": [
         {"app": "bookings"},
     ],
     "show_ui_builder": False,
-
+    "related_modal_active": True,
+    "custom_css": None,
+    "custom_js": None,
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
 }
 JAZZMIN_UI_TWEAKS = {
     "navbar_small_text": False,
@@ -230,11 +259,12 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_compact_style": True,
     "sidebar_nav_legacy_style": True,
     "sidebar_nav_flat_style": True,
-    "theme": "yeti",
+    # Use 'flatly' instead of 'yeti' or 'default'
+    "theme": "flatly",
     "dark_mode_theme": None,
     "button_classes": {
-        "primary": "btn-outline-primary",
-        "secondary": "btn-outline-secondary",
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
         "info": "btn-info",
         "warning": "btn-warning",
         "danger": "btn-danger",
@@ -247,6 +277,8 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://10.0.6.34:5173",
+    "https://smart-space-kappa.vercel.app",
+    "https://eventspace-api-production.up.railway.app",
 ]
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://\w+\.localhost:5173$",
@@ -258,4 +290,19 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Site URL for absolute URLs in emails
 # In production, set this to the actual domain
+
+# Railway detection
+RAILWAY_ENVIRONMENT = os.environ.get('RAILWAY_ENVIRONMENT', False)
 SITE_URL = env('SITE_URL', default='http://127.0.0.1:8000')
+
+# Special handling for Railway environment
+if os.environ.get('RAILWAY_ENVIRONMENT'):
+    # Completely remove Jazzmin from installed apps when on Railway
+    # This prevents theme-related errors
+    if 'jazzmin' in INSTALLED_APPS:
+        INSTALLED_APPS.remove('jazzmin')
+    
+    # Use Django's default admin interface instead
+    # This ensures the admin will work without any theme dependencies
+    JAZZMIN_SETTINGS = {}
+    JAZZMIN_UI_TWEAKS = {}
